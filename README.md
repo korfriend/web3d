@@ -11,7 +11,7 @@ I will provide the basic skeleton codes for you guys to get started into the pra
 ### Keep in mind
 When you need discussion/or QA/ or news about our group, go to the <a href="https://github.com/korfriend/web3d/discussions">Discussion</a> page. 
 In this project course, I will not teach the coding languages but you guys must learn the coding language details by yourself.
-Even though you don't have prior experience in JavaScript and the relavant libraries, you should be able to understand object-oriented programs and modify them.
+Even though you don't have prior experience in JavaScript and its relavant libraries, you should be able to understand object-oriented programs and modify them.
 
 Are you scared? :)
 
