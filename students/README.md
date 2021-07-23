@@ -12,4 +12,4 @@ You guys are supposed to do the following:
 
 ### Progress
 - For two days, I will be watching you guys trial and team work (7/26, 27)
-- After the two days, I will make you guys to complete (but I really want you guys to complete by yourselves) (7/28) 
+- After the two days, I will make you guys to complete (but I really hope that you guys will be able to complete by yourselves) (7/28) 
