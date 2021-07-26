@@ -6,4 +6,10 @@ You guys are supposed to do the following:
 - Using the skeleton codes, which prof.Kim provided, complete the codes to satisfy the bellow specification
 
 ### Specification:
-- ...
+- Replace the camera controls provided by the OrbitControl module with your own control codes
+- Use the mouse event via JavaScript event callbacks (refer to the skeleton code)
+- Camera translating along the viewing direction (zooming effect in the perspective mode), panning, rotating
+
+### Progress
+- For two days, I will be watching you guys trial and team work (7/26, 27)
+- After the two days, I will make you guys to complete (but I really hope that you guys will be able to complete by yourselves) (7/28) 
