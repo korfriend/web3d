@@ -1,6 +1,6 @@
-import * as THREE from "/js/three.module.js";
-import { OrbitControls } from "/js/OrbitControls.js";
-import { GUI } from '/js/dat.gui.module.js';
+import * as THREE from "./js/three.module.js";
+import { OrbitControls } from "./js/OrbitControls.js";
+import { GUI } from './js/dat.gui.module.js';
 
 // https://threejsfundamentals.org/threejs/lessons/kr/threejs-fundamentals.html
 const render_w = window.innerWidth;
