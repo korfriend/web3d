@@ -2,7 +2,6 @@ import * as THREE from "../../js/three.module.js";
 import { OrbitControls } from "../../js/OrbitControls.js";
 import { GUI } from '../../js/dat.gui.module.js';
 
-// https://threejsfundamentals.org/threejs/lessons/kr/threejs-fundamentals.html
 const render_w = window.innerWidth;
 const render_h = window.innerHeight;
 
@@ -16,8 +15,8 @@ const renderer = new THREE.WebGLRenderer();
 //const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(render_w, render_h);
 
-const controls = new OrbitControls(camera, renderer.domElement);
-
+const controls = new OrbitControls(camera, renderer.domElement);//카메라가 움직이기 가능해짐
+//큐브생성
 const geomery = new THREE.BoxGeometry(1, 1, 1);
 const texture = new THREE.TextureLoader().load( './teximg.jpg' );
 const material = new THREE.MeshPhongMaterial( {color:0xFFFFFF, map:texture} );
@@ -40,19 +39,18 @@ function dom_init() {
     container.addEventListener("wheel", mouseWheel, false);
     container.addEventListener('contextmenu', function (e) { 
         e.preventDefault(); 
-    }, false);
+    }, false); //여기 분석 여러 리스너 추가하는 파트인듯
 
     window.addEventListener( 'resize', onWindowResize );
 
     function onWindowResize() {
-
-        render_w = window.innerWidth;
-        render_h = window.innerHeight;
+        var render_w = window.innerWidth; // 내가 변수 선언해준거임
+        var render_h = window.innerHeight;
         camera.aspect = render_w/render_h;
-        camera.updateProjectionMatrix();
+        camera.updateProjectionMatrix(); //여기도 분석
 
         renderer.setSize( render_w, render_h );
-    }
+    } // 사이즈 조절이라 크게는 신경 안써도 될듯?
 }
 
 function scene_init() {
@@ -69,19 +67,19 @@ function scene_init() {
 
     camera.position.set(0, 0, 5);
     camera.lookAt(0, 0, 0);
-    camera.up.set(0, 1, 0);
+    camera.up.set(0, 1, 0); //기본 카메라 세팅같은데 건드릴 필요있을까
 
     controls.target.set( 0, 0, 0 );
-}
+}//삽입해주는 부분
 
 function SetOrbitControls(enable_orbitctr){
-    controls.enabled = enable_orbitctr;
-    controls.enablePan = true;
-    controls.enableZoom = true;
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.05;
+    controls.enabled = enable_orbitctr;//사용자가 입력 받을지 말지
+    controls.enablePan = true; //카매라 패닝의 활성화 또는 비활성화를 설정합니다. 기본값은 true 입니다.
+    controls.enableZoom = true; //카메라 확대 / 축소 (dollying)를 활성화 또는 비활성화를 설정합니다.
+    controls.enableDamping = true; //부드럽게 관성
+    controls.dampingFactor = 0.05; //위가 true일 경우 애니메이션루프에서 .update호출 필요
     controls.update();
-}
+} //카메라가 대상 주변 회전가능
 /*
 render_animation();
 function render_animation(){
