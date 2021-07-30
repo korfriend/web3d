@@ -19,7 +19,7 @@ const renderer = new THREE.WebGLRenderer();
 renderer.setSize(render_w, render_h);
 /// 기본적인 화면 설정
 
-const controls = new OrbitControls(camera, renderer.domElement);
+//const controls = new OrbitControls(camera, renderer.domElement);
 
 
 const geomery = new THREE.BoxGeometry(1, 1, 1);
@@ -78,16 +78,16 @@ function scene_init() {
     camera.lookAt(0, 0, 0);
     camera.up.set(0, 1, 0);
 
-    controls.target.set( 0, 0, 0 );
+    //controls.target.set( 0, 0, 0 );
 }/// 전체적인 장면의 세부 설정 함수
 
 function SetOrbitControls(enable_orbitctr){
-    controls.enabled = enable_orbitctr;
-    controls.enablePan = true;
-    controls.enableZoom = true;
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.05;
-    controls.update();
+    // controls.enabled = enable_orbitctr;
+    // controls.enablePan = true;
+    // controls.enableZoom = true;
+    // controls.enableDamping = true;
+    // controls.dampingFactor = 0.05;
+    // controls.update();
 }
 /*
 render_animation();
@@ -98,8 +98,11 @@ function render_animation(){
 }
 /**/
 // I strongly recommend you guys to read "Lambda function/code" articles
+let z = 5;
+let myCameraPosition =  new THREE.Vector3(0,0,0);
 renderer.setAnimationLoop( ()=>{
-    controls.update();
+    //controls.update();
+    setScale(camera, z);
     renderer.render( scene, camera );
 } );
 /**/
@@ -109,8 +112,21 @@ function mouseDownHandler(e) {
 function mouseMoveHandler(e) {
 }
 
+
 function mouseWheel(e) {
-    if(e.deltaY > 0){
-        scene.scale.set(5, 5, 5);
+    
+    myCameraPosition.x = camera.position.x;
+    myCameraPosition.y = camera.position.y;
+    myCameraPosition.z = camera.position.z;
+    if(e.wheelDelta > 0){
+        z -= 0.1;
     }
+    if(e.wheelDelta < 0){
+        z += 0.1;
+    }
+    // 이런식으로 진행할건데, 이게 3차원으로 해결해야 하는 부분이란 말이지. 
+}
+
+function setScale(camera, z) {
+    camera.position.z = z;
 }
