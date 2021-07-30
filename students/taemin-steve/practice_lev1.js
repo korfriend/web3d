@@ -99,10 +99,9 @@ function render_animation(){
 /**/
 // I strongly recommend you guys to read "Lambda function/code" articles
 let z = 5;
-let myCameraPosition =  new THREE.Vector3(0,0,0);
 renderer.setAnimationLoop( ()=>{
     //controls.update();
-    setScale(camera, z);
+    setScale(camera);
     renderer.render( scene, camera );
 } );
 /**/
@@ -114,19 +113,24 @@ function mouseMoveHandler(e) {
 
 
 function mouseWheel(e) {
+    const d = camera.position.distanceTo( new THREE.Vector3());
     
-    myCameraPosition.x = camera.position.x;
-    myCameraPosition.y = camera.position.y;
-    myCameraPosition.z = camera.position.z;
     if(e.wheelDelta > 0){
-        z -= 0.1;
+        const newD = d - 0.1;
+        camera.position.x *= ( newD / d);
+        camera.position.y *= ( newD / d);
+        camera.position.z *= ( newD / d);
     }
     if(e.wheelDelta < 0){
-        z += 0.1;
-    }
-    // 이런식으로 진행할건데, 이게 3차원으로 해결해야 하는 부분이란 말이지. 
+        const newD = d + 0.1;
+        camera.position.x *= ( newD / d);
+        camera.position.y *= ( newD / d);
+        camera.position.z *= ( newD / d);
+    } 
 }
 
-function setScale(camera, z) {
-    camera.position.z = z;
+function setScale(camera) {
+    camera.position.x = camera.position.x;
+    camera.position.y = camera.position.y;
+    camera.position.z = camera.position.z;
 }
