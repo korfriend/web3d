@@ -16,21 +16,21 @@ const renderer = new THREE.WebGLRenderer();
 //const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(render_w, render_h);
 
-const controls = new OrbitControls(camera, renderer.domElement);
+//const controls = new OrbitControls(camera, renderer.domElement);
 
 const geomery = new THREE.BoxGeometry(1, 1, 1);
 const texture = new THREE.TextureLoader().load( './teximg.jpg' );
 const material = new THREE.MeshPhongMaterial( {color:0xFFFFFF, map:texture} );
 const cube = new THREE.Mesh(geomery, material);
-cube.matrixAutoUpdate = false;
+cube.matrixAutoUpdate = false; //why?
 
 const light = new THREE.DirectionalLight(0xFFFFFF, 1);
 let light_helper;
-let mode_movement = "none";
+let mode_movement = "none"; //what?
 
 dom_init();
 scene_init();
-SetOrbitControls(true);
+//SetOrbitControls(true);
 
 function dom_init() {
     const container = document.getElementById('render_div');
@@ -71,17 +71,17 @@ function scene_init() {
     camera.lookAt(0, 0, 0);
     camera.up.set(0, 1, 0);
 
-    controls.target.set( 0, 0, 0 );
+    //controls.target.set( 0, 0, 0 );
 }
 
-function SetOrbitControls(enable_orbitctr){
-    controls.enabled = enable_orbitctr;
-    controls.enablePan = true;
-    controls.enableZoom = true;
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.05;
-    controls.update();
-}
+// function SetOrbitControls(enable_orbitctr){
+//     controls.enabled = enable_orbitctr;
+//     controls.enablePan = true;
+//     controls.enableZoom = true;
+//     controls.enableDamping = true;
+//     controls.dampingFactor = 0.05;
+//     controls.update();
+// }
 /*
 render_animation();
 function render_animation(){
@@ -91,16 +91,35 @@ function render_animation(){
 }
 /**/
 // I strongly recommend you guys to read "Lambda function/code" articles
+
 renderer.setAnimationLoop( ()=>{
-    controls.update();
+    //controls.update();
     renderer.render( scene, camera );
 } );
 /**/
 function mouseDownHandler(e) {
+    var isRightButton;
+    e = e || window.event;
+
+    if ("which" in e)  // Gecko (Firefox), WebKit (Safari/Chrome) & Opera
+        isRightButton = e.which == 3; 
+    else if ("button" in e)  // IE, Opera 
+        isRightButton = e.button == 2; 
+
+    alert("Right mouse button " + (isRightButton ? "" : " was not ") + "clicked!");
+
+div.addEventListener('contextmenu', function(e) {
+		e.preventDefault();
+});
+    
 }
 
 function mouseMoveHandler(e) {
 }
 
 function mouseWheel(e) {
+    if(e.wheelDelta>0)
+        camera.position.z +=0.5;
+    else if(e.wheelDelta<0)
+        camera.position.z -=0.5;    
 }
