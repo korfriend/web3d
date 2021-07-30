@@ -101,7 +101,6 @@ function render_animation(){
 let z = 5;
 renderer.setAnimationLoop( ()=>{
     //controls.update();
-    setScale(camera);
     renderer.render( scene, camera );
 } );
 /**/
@@ -116,21 +115,16 @@ function mouseWheel(e) {
     const d = camera.position.distanceTo( new THREE.Vector3());
     
     if(e.wheelDelta > 0){
-        const newD = d - 0.1;
+        const newD = d - 0.15;
         camera.position.x *= ( newD / d);
         camera.position.y *= ( newD / d);
         camera.position.z *= ( newD / d);
     }
     if(e.wheelDelta < 0){
-        const newD = d + 0.1;
+        const newD = d + 0.15;
         camera.position.x *= ( newD / d);
-        camera.position.y *= ( newD / d);
+        camera.position.y *= ( newD / d); 
         camera.position.z *= ( newD / d);
     } 
 }
 
-function setScale(camera) {
-    camera.position.x = camera.position.x;
-    camera.position.y = camera.position.y;
-    camera.position.z = camera.position.z;
-}
