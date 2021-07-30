@@ -43,6 +43,7 @@ function dom_init() {
     const container = document.getElementById('render_div');
     container.appendChild(renderer.domElement);
     container.addEventListener("mousedown", mouseDownHandler, false);
+    container.addEventListener("mouseup", mouseUpHandler, false);
     container.addEventListener("mousemove", mouseMoveHandler, false);
     container.addEventListener("wheel", mouseWheel, false);
     container.addEventListener('contextmenu', function (e) { 
@@ -98,16 +99,39 @@ function render_animation(){
 }
 /**/
 // I strongly recommend you guys to read "Lambda function/code" articles
-let z = 5;
+let rightButtonClick = false;
+let leftButtonClick = false;
+let rightButtonMousePosX = 0;
+let rightButtonMousePosY = 0;
+
 renderer.setAnimationLoop( ()=>{
     //controls.update();
     renderer.render( scene, camera );
 } );
 /**/
+
 function mouseDownHandler(e) {
+    if (e.which == 3) {
+        rightButtonClick = true;
+    }
+    else if ( e.which == 1){
+        leftButtonClick = true;
+    }
+}
+
+function mouseUpHandler(e) {
+    rightButtonClick = false;
+    leftButtonClick = false;
 }
 
 function mouseMoveHandler(e) {
+    if(rightButtonClick){
+        camera.position.x -= 5*(e.offsetX - rightButtonMousePosX)/ render_w ;
+        camera.position.y += 5*(e.offsetY - rightButtonMousePosY)/ render_w ;
+        camera.updateProjectionMatrix();
+    }
+    rightButtonMousePosX = e.offsetX;
+    rightButtonMousePosY = e.offsetY;
 }
 
 
