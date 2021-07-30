@@ -11,5 +11,5 @@ You guys are supposed to do the following:
 - Camera translating along the viewing direction (zooming effect in the perspective mode), panning, rotating
 
 ### Progress
-- At 2nd Aug, I will check you guys' progress and have a meeting for listen your personal difficulties.
+- At 2nd Aug, I will check you guys' progress and have a meeting to listen your difficulties.
  
