@@ -15,7 +15,7 @@ const renderer = new THREE.WebGLRenderer();
 //const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(render_w, render_h);
 
-const controls = new OrbitControls(camera, renderer.domElement);//카메라가 움직이기 가능해짐
+//const controls = new OrbitControls(camera, renderer.domElement);//카메라가 움직이기 가능해짐
 //큐브생성
 const geomery = new THREE.BoxGeometry(1, 1, 1);
 const texture = new THREE.TextureLoader().load( './teximg.jpg' );
@@ -29,12 +29,14 @@ let mode_movement = "none";
 
 dom_init();
 scene_init();
-SetOrbitControls(true);
+//SetOrbitControls(true);
 
 function dom_init() {
     const container = document.getElementById('render_div');
     container.appendChild(renderer.domElement);
     container.addEventListener("mousedown", mouseDownHandler, false);
+    container.addEventListener("mouseup", mouseUpHandler, false);
+
     container.addEventListener("mousemove", mouseMoveHandler, false);
     container.addEventListener("wheel", mouseWheel, false);
     container.addEventListener('contextmenu', function (e) { 
@@ -69,36 +71,83 @@ function scene_init() {
     camera.lookAt(0, 0, 0);
     camera.up.set(0, 1, 0); //기본 카메라 세팅같은데 건드릴 필요있을까
 
-    controls.target.set( 0, 0, 0 );
+    //controls.target.set( 0, 0, 0 );
 }//삽입해주는 부분
 
-function SetOrbitControls(enable_orbitctr){
-    controls.enabled = enable_orbitctr;//사용자가 입력 받을지 말지
-    controls.enablePan = true; //카매라 패닝의 활성화 또는 비활성화를 설정합니다. 기본값은 true 입니다.
-    controls.enableZoom = true; //카메라 확대 / 축소 (dollying)를 활성화 또는 비활성화를 설정합니다.
-    controls.enableDamping = true; //부드럽게 관성
-    controls.dampingFactor = 0.05; //위가 true일 경우 애니메이션루프에서 .update호출 필요
-    controls.update();
-} //카메라가 대상 주변 회전가능
-/*
-render_animation();
-function render_animation(){
-    window.requestAnimationFrame(render_animation);
-    controls.update();
-    renderer.render(scene, camera);
-}
-/**/
-// I strongly recommend you guys to read "Lambda function/code" articles
 renderer.setAnimationLoop( ()=>{
-    controls.update();
+    //controls.update();
     renderer.render( scene, camera );
 } );
-/**/
+
+
+let rightButtonClick = false;
+let leftButtonClick = false;
+let rightButtonMousePosX = 0;
+let rightButtonMousePosY = 0;
+
+
 function mouseDownHandler(e) {
+
+    if(e.button === 0) { 
+        leftButtonClick = true; 
+    }
+    else if (e.button === 2) { 
+        console.log("r");
+        rightButtonClick = true;
+    }
+}
+
+function mouseUpHandler(e) {
+    rightButtonClick = false;
+    leftButtonClick = false;
 }
 
 function mouseMoveHandler(e) {
+    if(rightButtonClick){
+        camera.position.x -= 5*(e.offsetX - rightButtonMousePosX)/ render_w ;
+        camera.position.y += 5*(e.offsetY - rightButtonMousePosY)/ render_w ;
+        camera.updateProjectionMatrix();
+    }
+    rightButtonMousePosX = e.offsetX;
+    rightButtonMousePosY = e.offsetY;
 }
 
 function mouseWheel(e) {
+
+    if(e.wheelDelta > 0){
+        console.log(camera.zoom);
+        camera.zoom =camera.zoom + 0.1;
+        camera.updateProjectionMatrix();
+    }
+    if(e.wheelDelta < 0){
+        camera.zoom =camera.zoom - 0.1;
+        console.log(camera.zoom);
+        camera.updateProjectionMatrix();
+    } 
 }
+
+
+
+
+// function mouseDownHandler(e) {
+    
+// //     var div = document.getElementById('render_div');
+// //     div.addEventListener('mousedown', function(e) {
+// // 		var isRightButton;
+// //         e = e || window.event;
+// //         if ("which" in e){
+// //             isRightButton = e.which == 3; 
+// //             console.log("Right mouse button clicked!");   
+// //         }  // Gecko (Firefox), WebKit (Safari/Chrome) & Opera
+// //         else{
+// //             console.log("Left mouse button clicked!");       
+// //         }
+// // });
+
+// // div.addEventListener('contextmenu', function(e) {
+// // 	var x = e.clientX;
+// //     var y = e.clientY;
+// //     console.log(x+" "+y);
+// //     mouseMoveHandler();
+// // });
+// }
