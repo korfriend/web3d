@@ -1,14 +1,5 @@
-/*
-Replace the camera controls provided by the OrbitControl module with your own control codes
-- OrbitControl module을 대신하는 자신만의 control code를 작성하라 
-Use the mouse event via JavaScript event callbacks (refer to the skeleton code)
-- (skeleton code를 참고하여) JacaScript event callback 함수를 통해서 mouse event를 사용하라 -> 함수 내용을 채우면 되는건가? 
-Camera translating along the viewing direction (zooming effect in the perspective mode), panning, rotating
-- viewing direction, panning, rotating을 따라서 Camera를 변경하라 -> ???
-*/
-
 // https://webdoli.tistory.com/53
-
+// https://jsfiddle.net/MadLittleMods/n6u6asza/
 
 /*
 다른 폴더에 있는 모듈을 import 하는 방법 
@@ -38,7 +29,7 @@ renderer.setSize(render_w, render_h);
 const controls = new OrbitControls(camera, renderer.domElement);                   // camera가 target 주위를 공전, 제어할 카메라 객체, domElement 이벤트 리스터에 사용되는 HTML element
 
 const geometry = new THREE.BoxGeometry(1, 1, 1);                                     // width, height, depth
-const texture = new THREE.TextureLoader().load( './sleepka01.jpg' );
+const texture = new THREE.TextureLoader().load( './teximg.jpg' );
 const material = new THREE.MeshPhongMaterial( {color:0xFFFFFF, map:texture} );
 const cube = new THREE.Mesh(geometry, material);
 cube.matrixAutoUpdate = false;                                                      // 위치의 matrix를 계산하고 매 프레임마다 확대/축소하고 matrixWorld property를 자동 재계산한다 
@@ -58,6 +49,7 @@ function dom_init() {
     container.appendChild(renderer.domElement);
     container.addEventListener("mousedown", mouseDownHandler, false);               // 마우스 클릭, 떼기 전까지 
     container.addEventListener("mousemove", mouseMoveHandler, false);               // 마우스가 움직였을 때 
+    container.addEventListener("mouseup", mouseUpHandler, false);
     container.addEventListener("wheel", mouseWheel, false);                         // false >> bubbling 방식, 자식노드부터 이벤트가 발생하여 부모로 이벤트 전파
     container.addEventListener('contextmenu', function (e) { 
         e.preventDefault();                                                         // preventDefault : 현재 이벤트의 기본 동작을 중단한다
@@ -96,8 +88,8 @@ function scene_init() {
 }
 
 function SetOrbitControls(enable_orbitctr){
-    controls.enabled = false;                // rotating
-    controls.enablePan = false;             // panning
+    controls.enabled = enable_orbitctr;     // rotating
+    controls.enablePan = true;             // panning
     controls.enableZoom = true;             // zooming
     controls.enableDamping = false;
     controls.dampingFactor = 0.05;
@@ -105,51 +97,94 @@ function SetOrbitControls(enable_orbitctr){
     controls.update(); // camera 변환설정을 수동으로 변경한 후에 호출 
 }
 
-
+/*
 render_animation();
 function render_animation(){
     window.requestAnimationFrame(render_animation);
     controls.update();
     renderer.render(scene, camera);
 }
-
+*/
 
 // I strongly recommend you guys to read "Lambda function/code" articles
 renderer.setAnimationLoop( ()=>{ // every available frame
+    
     //controls.update();
     renderer.render( scene, camera );
 } );
 
 
-/**/
-function mouseDownHandler(e) {
-    var isRotating, isPanning; //undefined
-    var previousMousePosition = {
-        x: 0,
-        y: 0
-    }
-    // Gecko (Firefox), WebKit (Safari/Chrome) & Opera -> which, IE, Opera -> button
-    if (e.which==1 || e.button ==0) 
-        isRotating = true;
-        //alert("Left mouse button was clicked!"+isRotating);             
-
-    if (e.which==3 || e.button ==2)
-        isPanning = true;
-        //alert("Right mouse button was clicked!"+isPanning);          
-       
-    
+var isRotating, isPanning; //undefined
+var previousMousePosition = {
+    x: 0,
+    y: 0
 }
 
+/**/
+function mouseDownHandler(e) {
+    // Gecko (Firefox), WebKit (Safari/Chrome) & Opera -> which, IE, Opera -> button
+    if (e.which==1 || e.button ==0)  
+        isRotating = true;
+    if (e.which==3 || e.button ==2)
+        isPanning = true;
+    // 삼항연산자로 바꿀 수 없나?
+}
+
+// 마우스 클릭 지점 -> 옮긴 지점까지의 거리만큼 rotation
+// 마우스 처음 클릭 지점 -> 마우스 뗄때까지 옮긴 지점까지의 거리만큼  보이는 view자체를 이동, 즉 panning 
+// 이런거 아닐까.. 
 function mouseMoveHandler(e) {
     var deltaMove = {
         x: e.offsetX-previousMousePosition.x,
         y: e.offsetY-previousMousePosition.y
     };
+
+    if(isRotating) {
+        var deltaRotaionQuaternion = new THREE.Quaternion().setFromEuler(new THREE.Euler(
+            toRadians(deltaMove.y *1),
+            toRadians(deltaMove.x *1),
+            0,
+            'XYZ'
+        ));
+            
+        cube.quarternion.multiplyQuartenions(deltaRotaionQuaternion, cube.quarternion);
+    }
+
+
+    if(isPanning) {
+
+    }
+
+    previousMousePosition = {
+        x: e.offsetX,
+        y: e.offsetY
+    };
+
+    update();
+}
+
+function mouseUpHandler(e) {
+    isRotating = false;
+    isPanning = false;
 }
 
 function mouseWheel(e) {
+    /*
+    if(e.wheelDelta>0) {
+        camera.position.x += 0.15;
+        camera.position.y += 0.15;
+        camera.position.z += 0.15;}
+    else if (e.wheelDelta<0) {
+        camera.position.x -= 0.15;
+        camera.position.y -= 0.15;
+        camera.position.z -= 0.15;}
+        */
     //camera.position.z += event.deltaY / 1000;
-
     // prevent scrolling beyond a min/max value
     //camera.position.clampScalar(0, 10);
-}
+}   
+
+function toRadians(angle) {
+    return angle * (Math.PI/180);}
+function toDegrees(angle) {
+    return angle * (180/Math.PI);}
