@@ -28,6 +28,22 @@ const light = new THREE.DirectionalLight(0xFFFFFF, 1);
 let light_helper;
 let mode_movement = "none"; //what?
 
+let leftdown = false;
+let rightdown =false;
+
+var previousMousePosition = {
+    x: 0,
+    y: 0
+};
+
+var deltaMove = {
+    x: 0,
+    y: 0
+};
+
+const pivotPoint = new THREE.Object3D();
+
+
 dom_init();
 scene_init();
 //SetOrbitControls(true);
@@ -37,6 +53,7 @@ function dom_init() {
     container.appendChild(renderer.domElement);
     container.addEventListener("mousedown", mouseDownHandler, false);
     container.addEventListener("mousemove", mouseMoveHandler, false);
+    document.addEventListener( 'mouseup', mouseUpHandler, false );
     container.addEventListener("wheel", mouseWheel, false);
     container.addEventListener('contextmenu', function (e) { 
         e.preventDefault(); 
@@ -45,7 +62,6 @@ function dom_init() {
     window.addEventListener( 'resize', onWindowResize );
 
     function onWindowResize() {
-
         render_w = window.innerWidth;
         render_h = window.innerHeight;
         camera.aspect = render_w/render_h;
@@ -94,32 +110,65 @@ function render_animation(){
 
 renderer.setAnimationLoop( ()=>{
     //controls.update();
+    cube.matrixAutoUpdate = true;
     renderer.render( scene, camera );
+    
 } );
 /**/
+
 function mouseDownHandler(e) {
     var isRightButton;
     e = e || window.event;
 
-    if ("which" in e)  // Gecko (Firefox), WebKit (Safari/Chrome) & Opera
+    if ("which" in e)  {
         isRightButton = e.which == 3; 
-    else if ("button" in e)  // IE, Opera 
-        isRightButton = e.button == 2; 
-
-    alert("Right mouse button " + (isRightButton ? "" : " was not ") + "clicked!");
-
-div.addEventListener('contextmenu', function(e) {
-		e.preventDefault();
-});
+        leftdown = true;
+        previousMousePosition = {
+            x: e.offsetX,
+            y: e.offsetY
+        };
+        
+    }
     
+    else if ("button" in e) {
+        isRightButton = e.button == 2; 
+        rightdown=true;
+    }
+        
+    //alert("Right mouse button " + (isRightButton ? "" : " was not ") + "clicked!");
 }
 
 function mouseMoveHandler(e) {
+    
+    if(leftdown==true) {
+        console.log(leftdown);
+        deltaMove = {
+            x: e.offsetX-previousMousePosition.x,
+            y: e.offsetY-previousMousePosition.y
+        };
+    var deltaRotationQuaternion = new THREE.Quaternion()
+            .setFromEuler(new THREE.Euler(
+                deltaMove.y * 0.01* (Math.PI / 180),
+                deltaMove.x * 0.01* (Math.PI / 180),
+                0,
+                'XYZ'
+            ));
+    console.log(deltaRotationQuaternion)
+    cube.quaternion.multiplyQuaternions(deltaRotationQuaternion, cube.quaternion);
+    
+    }
+    
 }
+
+function mouseUpHandler(e){
+    leftdown = false;
+    rightdown =false;
+}
+
 
 function mouseWheel(e) {
     if(e.wheelDelta>0)
-        camera.position.z +=0.5;
+        camera.position.z -=0.1;
     else if(e.wheelDelta<0)
-        camera.position.z -=0.5;    
+        camera.position.z +=0.1;    
 }
