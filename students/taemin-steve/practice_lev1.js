@@ -67,7 +67,7 @@ function dom_init() {
 }
 
 function scene_init() {
-    ///add object3D
+    ///add object3D ,
     scene.add(overallObject3D);
     overallObject3D.add(forObject3D)
     forObject3D.add(cube);
