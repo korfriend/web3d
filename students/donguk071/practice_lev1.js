@@ -21,11 +21,15 @@ const geomery = new THREE.BoxGeometry(1, 1, 1);
 const texture = new THREE.TextureLoader().load( './teximg.jpg' );
 const material = new THREE.MeshPhongMaterial( {color:0xFFFFFF, map:texture} );
 const cube = new THREE.Mesh(geomery, material);
-cube.matrixAutoUpdate = false;
+cube.matrixAutoUpdate = false; //큐브 조작 방지
 
 const light = new THREE.DirectionalLight(0xFFFFFF, 1);
 let light_helper;
 let mode_movement = "none";
+
+///추가부분
+const NewObj = new THREE.Object3D();
+///
 
 dom_init();
 scene_init();
@@ -41,7 +45,7 @@ function dom_init() {
     container.addEventListener("wheel", mouseWheel, false);
     container.addEventListener('contextmenu', function (e) { 
         e.preventDefault(); 
-    }, false); //여기 분석 여러 리스너 추가하는 파트인듯
+    }, false); //여기 분석 여러 리스너 추가하는 파트
 
     window.addEventListener( 'resize', onWindowResize );
 
@@ -56,14 +60,16 @@ function dom_init() {
 }
 
 function scene_init() {
+
+    NewObj.add(scene); //신그래프에 개념이용 새로운 좌표계에 담아주기
+
     scene.add(cube);
     scene.add(new THREE.AxesHelper(2));
 
     light.position.set(-2, 2, 2);
     light.target = cube;
     scene.add(light);
-    scene.add( new THREE.AmbientLight( 0x222222 ) );
-
+    scene.add( new THREE.AmbientLight( 0x222222 ) ); //광원이 이상하길래 큰거에 설정해줬다
     light_helper = new THREE.DirectionalLightHelper(light, 0.3);
     scene.add( light_helper );
 
@@ -104,12 +110,21 @@ function mouseUpHandler(e) {
 
 function mouseMoveHandler(e) {
     if(rightButtonClick){
-        camera.position.x -= 5*(e.offsetX - rightButtonMousePosX)/ render_w ;
+        camera.position.x -= 5*(e.offsetX - rightButtonMousePosX)/ render_w ; // 화면 크기에 따른 이동량 변화
         camera.position.y += 5*(e.offsetY - rightButtonMousePosY)/ render_w ;
         camera.updateProjectionMatrix();
     }
+    if(leftButtonClick){
+        var x = 3*2*2*(e.offsetX - rightButtonMousePosX)/render_w;
+        var y = 3*2*2*(e.offsetY - rightButtonMousePosY)/render_h;
+        //2*(e.offsetX - rightButtonMousePosX)/render_w 이게 1px씩 움직인다
+        //const transform  = new THREE.Quaternion().setFromEuler(new THREE.Euler(x, y, z, 'YXZ'));
+        scene.quaternion.multiplyQuaternions(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),x),scene.quaternion);
+        scene.quaternion.multiplyQuaternions(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),y),scene.quaternion);
+    }  
     rightButtonMousePosX = e.offsetX;
     rightButtonMousePosY = e.offsetY;
+
 }
 
 function mouseWheel(e) {
