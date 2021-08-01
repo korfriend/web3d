@@ -72,16 +72,22 @@ function dom_init() {
 }
 
 function scene_init() {
-    scene.add(cube);
-    scene.add(new THREE.AxesHelper(2));
+
+    pivotPoint.add(cube)
+    //scene.add(cube);
+    pivotPoint.add(new THREE.AxesHelper(2))
+    //scene.add(new THREE.AxesHelper(2));
 
     light.position.set(-2, 2, 2);
     light.target = cube;
-    scene.add(light);
+    //scene.add(light);
     scene.add( new THREE.AmbientLight( 0x222222 ) );
+    pivotPoint.add(light)
 
     light_helper = new THREE.DirectionalLightHelper(light, 0.3);
     scene.add( light_helper );
+
+    scene.add(pivotPoint);
 
     camera.position.set(0, 0, 5);
     camera.lookAt(0, 0, 0);
@@ -140,14 +146,11 @@ function mouseMoveHandler(e) {
             .setFromEuler(new THREE.Euler(
                 deltaMove.y* 0.01* (Math.PI / 360),
                 deltaMove.x * 0.01* (Math.PI / 360),
-                0.01* (Math.PI / 360),
+                0,
                 'XYZ'
             ));
     console.log(deltaRotationQuaternion)
-    camera.quaternion.multiplyQuaternions(deltaRotationQuaternion, camera.quaternion);
-    
-    
-
+    pivotPoint.quaternion.multiplyQuaternions(deltaRotationQuaternion, pivotPoint.quaternion);
     }
     
 
