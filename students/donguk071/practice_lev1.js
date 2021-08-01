@@ -110,9 +110,12 @@ function mouseUpHandler(e) {
 
 function mouseMoveHandler(e) {
     if(rightButtonClick){
-        camera.position.x -= 5*(e.offsetX - rightButtonMousePosX)/ render_w ; // 화면 크기에 따른 이동량 변화
-        camera.position.y += 5*(e.offsetY - rightButtonMousePosY)/ render_w ;
-        camera.updateProjectionMatrix();
+        //camera.position.x -= 5*(e.offsetX - rightButtonMousePosX)/ render_w ; // 화면 크기에 따른 이동량 변화
+        //camera.position.y += 5*(e.offsetY - rightButtonMousePosY)/ render_w ;
+        //camera.updateProjectionMatrix();
+        scene.translateX(5*(e.offsetX - rightButtonMousePosX)/ render_w);
+        scene.translateY(-5*(e.offsetY - rightButtonMousePosY)/ render_w);
+        //scene과 NewObj의 상하관계가 이상해서 이런거같음
     }
     if(leftButtonClick){
         var x = 3*2*2*(e.offsetX - rightButtonMousePosX)/render_w;
