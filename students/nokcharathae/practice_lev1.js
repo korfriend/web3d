@@ -72,16 +72,22 @@ function dom_init() {
 }
 
 function scene_init() {
-    scene.add(cube);
-    scene.add(new THREE.AxesHelper(2));
+
+    pivotPoint.add(cube)
+    //scene.add(cube);
+    pivotPoint.add(new THREE.AxesHelper(2))
+    //scene.add(new THREE.AxesHelper(2));
 
     light.position.set(-2, 2, 2);
     light.target = cube;
-    scene.add(light);
+    //scene.add(light);
     scene.add( new THREE.AmbientLight( 0x222222 ) );
+    pivotPoint.add(light)
 
     light_helper = new THREE.DirectionalLightHelper(light, 0.3);
     scene.add( light_helper );
+
+    scene.add(pivotPoint);
 
     camera.position.set(0, 0, 5);
     camera.lookAt(0, 0, 0);
@@ -110,75 +116,43 @@ function render_animation(){
 
 renderer.setAnimationLoop( ()=>{
     //controls.update();
-    cube.matrixAutoUpdate = true;
     renderer.render( scene, camera );
     
 } );
 /**/
 
 function mouseDownHandler(e) {
-    var isRightButton;
-    //e = e || window.event;
-
-    /*
-    if ("which" in e)  {
-        isRightButton = e.which == 3; 
-        leftdown = true;
-        previousMousePosition = {
-            x: e.offsetX,
-            y: e.offsetY
-        };
-        
-    }
-    
-    else if ("button" in e) {
-        isRightButton = e.button == 1; 
-        rightdown=true;
-        previousMousePosition = {
-            x: e.offsetX,
-            y: e.offsetY
-        };
-        console.log(rightdown+"입니다")
-    }*/
+    previousMousePosition = {
+        x: e.offsetX,
+        y: e.offsetY
+    };
     if (e.which == 3) {
-        rightdown = true;
-        console.log(rightdown);
-        previousMousePosition = {
-            x: e.offsetX,
-            y: e.offsetY
-        };
+        rightdown = true;        
     }
     else if ( e.which == 1){
         leftdown = true;
-        console.log(leftdown+"입니다");
-        previousMousePosition = {
-            x: e.offsetX,
-            y: e.offsetY
-        };
     }
-        
-   
 }
 
 function mouseMoveHandler(e) {
     
     if(leftdown==true) {
-        console.log(leftdown);
         deltaMove = {
             x: e.offsetX-previousMousePosition.x,
             y: e.offsetY-previousMousePosition.y
         };
+        
     var deltaRotationQuaternion = new THREE.Quaternion()
             .setFromEuler(new THREE.Euler(
-                deltaMove.y * 0.01* (Math.PI / 180),
-                deltaMove.x * 0.01* (Math.PI / 180),
+                deltaMove.y* 0.01* (Math.PI / 360),
+                deltaMove.x * 0.01* (Math.PI / 360),
                 0,
                 'XYZ'
             ));
     console.log(deltaRotationQuaternion)
-    cube.quaternion.multiplyQuaternions(deltaRotationQuaternion, cube.quaternion);
-    
+    pivotPoint.quaternion.multiplyQuaternions(deltaRotationQuaternion, pivotPoint.quaternion);
     }
+    
 
     else if(rightdown==true){
         camera.position.x -= 0.1*(e.offsetX - deltaMove.x)/ render_w ;
