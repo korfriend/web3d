@@ -25,6 +25,8 @@ renderer.setSize(render_w, render_h);
 const geomery = new THREE.BoxGeometry(1, 1, 1);
 const texture = new THREE.TextureLoader().load( './teximg.jpg' );
 const material = new THREE.MeshPhongMaterial( {color:0xFFFFFF, map:texture} );
+///내가 추가해본거
+const forQ = new THREE.Object3D();
 const cube = new THREE.Mesh(geomery, material);
 cube.matrixAutoUpdate = false;
 /// 박스 만들기
@@ -64,12 +66,17 @@ function dom_init() {
 }
 
 function scene_init() {
-    scene.add(cube);
-    scene.add(new THREE.AxesHelper(2));// 축 생성
+    ///내가 넣은거
+    scene.add(forQ);
+    forQ.add(cube);
+    forQ.add(new THREE.AxesHelper(2));
+    forQ.add(light);
+    //scene.add(cube);
+    //scene.add(new THREE.AxesHelper(2));// 축 생성
 
     light.position.set(-2, 2, 2);
     light.target = cube;
-    scene.add(light);
+    //scene.add(light);
     scene.add( new THREE.AmbientLight( 0x222222 ) );// 광원 설정, 장면에 추가 
 
     light_helper = new THREE.DirectionalLightHelper(light, 0.3);
@@ -104,6 +111,9 @@ let leftButtonClick = false;
 let rightButtonMousePosX = 0;
 let rightButtonMousePosY = 0;
 
+let angleX = 0;
+let angleY = 0;
+
 renderer.setAnimationLoop( ()=>{
     //controls.update();
     renderer.render( scene, camera );
@@ -125,10 +135,18 @@ function mouseUpHandler(e) {
 }
 
 function mouseMoveHandler(e) {
+    const d = camera.position.distanceTo( new THREE.Vector3());
     if(rightButtonClick){
-        camera.position.x -= 5*(e.offsetX - rightButtonMousePosX)/ render_w ;
-        camera.position.y += 5*(e.offsetY - rightButtonMousePosY)/ render_w ;
+        camera.position.x -= 10*(e.offsetX - rightButtonMousePosX)/ render_w ;
+        camera.position.y += 10*(e.offsetY - rightButtonMousePosY)/ render_w ;
         camera.updateProjectionMatrix();
+    }
+    else if(leftButtonClick){
+        //camera.quaternion.multiplyQuaternions(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,0,1),Math.PI/2),camera.quaternion);
+        angleX = Math.PI*2*2*(e.offsetX - rightButtonMousePosX)/render_w;
+        angleY = Math.PI*2*2*(e.offsetY - rightButtonMousePosY)/render_h;
+        forQ.quaternion.multiplyQuaternions(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),angleX),forQ.quaternion);
+        forQ.quaternion.multiplyQuaternions(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),angleY),forQ.quaternion);
     }
     rightButtonMousePosX = e.offsetX;
     rightButtonMousePosY = e.offsetY;
