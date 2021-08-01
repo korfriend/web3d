@@ -110,75 +110,46 @@ function render_animation(){
 
 renderer.setAnimationLoop( ()=>{
     //controls.update();
-    cube.matrixAutoUpdate = true;
     renderer.render( scene, camera );
     
 } );
 /**/
 
 function mouseDownHandler(e) {
-    var isRightButton;
-    //e = e || window.event;
-
-    /*
-    if ("which" in e)  {
-        isRightButton = e.which == 3; 
-        leftdown = true;
-        previousMousePosition = {
-            x: e.offsetX,
-            y: e.offsetY
-        };
-        
-    }
-    
-    else if ("button" in e) {
-        isRightButton = e.button == 1; 
-        rightdown=true;
-        previousMousePosition = {
-            x: e.offsetX,
-            y: e.offsetY
-        };
-        console.log(rightdown+"입니다")
-    }*/
+    previousMousePosition = {
+        x: e.offsetX,
+        y: e.offsetY
+    };
     if (e.which == 3) {
-        rightdown = true;
-        console.log(rightdown);
-        previousMousePosition = {
-            x: e.offsetX,
-            y: e.offsetY
-        };
+        rightdown = true;        
     }
     else if ( e.which == 1){
         leftdown = true;
-        console.log(leftdown+"입니다");
-        previousMousePosition = {
-            x: e.offsetX,
-            y: e.offsetY
-        };
     }
-        
-   
 }
 
 function mouseMoveHandler(e) {
     
     if(leftdown==true) {
-        console.log(leftdown);
         deltaMove = {
             x: e.offsetX-previousMousePosition.x,
             y: e.offsetY-previousMousePosition.y
         };
+        
     var deltaRotationQuaternion = new THREE.Quaternion()
             .setFromEuler(new THREE.Euler(
-                deltaMove.y * 0.01* (Math.PI / 180),
-                deltaMove.x * 0.01* (Math.PI / 180),
-                0,
+                deltaMove.y* 0.01* (Math.PI / 360),
+                deltaMove.x * 0.01* (Math.PI / 360),
+                0.01* (Math.PI / 360),
                 'XYZ'
             ));
     console.log(deltaRotationQuaternion)
-    cube.quaternion.multiplyQuaternions(deltaRotationQuaternion, cube.quaternion);
+    camera.quaternion.multiplyQuaternions(deltaRotationQuaternion, camera.quaternion);
     
+    
+
     }
+    
 
     else if(rightdown==true){
         camera.position.x -= 0.1*(e.offsetX - deltaMove.x)/ render_w ;
