@@ -70,7 +70,7 @@ function scene_init() {
     light_helper = new THREE.DirectionalLightHelper(light, 0.3);
     scene.add( light_helper );
 
-    //camera.matrixAutoUpdate = false;
+    camera.matrixAutoUpdate = false;
     // camera.position.set(0, 0, 3);
     // camera.lookAt(0, 0, 0);
     // camera.up.set(0, 1, 0);
@@ -86,6 +86,7 @@ function scene_init() {
     //camera.matrix.copy(a);// = new THREE.Matrix4().multiplyMatrices(a, b);
     camera.applyMatrix4(a);
     camera.applyMatrix4(b);
+    camera.updateMatrix();
     console.log(camera.matrix);
 
     //controls.target.set( 0, 0, 0 );
