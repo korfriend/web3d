@@ -22,11 +22,27 @@ const geomery = new THREE.BoxGeometry(1, 1, 1);
 const texture = new THREE.TextureLoader().load( './teximg.jpg' );
 const material = new THREE.MeshPhongMaterial( {color:0xFFFFFF, map:texture} );
 const cube = new THREE.Mesh(geomery, material);
-cube.matrixAutoUpdate = false; //why?
+cube.matrixAutoUpdate = false; 
 
 const light = new THREE.DirectionalLight(0xFFFFFF, 1);
 let light_helper;
 let mode_movement = "none"; //what?
+
+let leftdown = false;
+let rightdown =false;
+
+var previousMousePosition = {
+    x: 0,
+    y: 0
+};
+
+var deltaMove = {
+    x: 0,
+    y: 0
+};
+
+const pivotPoint = new THREE.Object3D();
+
 
 dom_init();
 scene_init();
@@ -37,6 +53,7 @@ function dom_init() {
     container.appendChild(renderer.domElement);
     container.addEventListener("mousedown", mouseDownHandler, false);
     container.addEventListener("mousemove", mouseMoveHandler, false);
+    document.addEventListener( 'mouseup', mouseUpHandler, false );
     container.addEventListener("wheel", mouseWheel, false);
     container.addEventListener('contextmenu', function (e) { 
         e.preventDefault(); 
@@ -45,7 +62,6 @@ function dom_init() {
     window.addEventListener( 'resize', onWindowResize );
 
     function onWindowResize() {
-
         render_w = window.innerWidth;
         render_h = window.innerHeight;
         camera.aspect = render_w/render_h;
@@ -56,16 +72,22 @@ function dom_init() {
 }
 
 function scene_init() {
-    scene.add(cube);
-    scene.add(new THREE.AxesHelper(2));
+
+    pivotPoint.add(cube)
+    //scene.add(cube);
+    pivotPoint.add(new THREE.AxesHelper(2))
+    //scene.add(new THREE.AxesHelper(2));
 
     light.position.set(-2, 2, 2);
     light.target = cube;
-    scene.add(light);
+    //scene.add(light);
     scene.add( new THREE.AmbientLight( 0x222222 ) );
+    pivotPoint.add(light)
 
     light_helper = new THREE.DirectionalLightHelper(light, 0.3);
     scene.add( light_helper );
+
+    scene.add(pivotPoint);
 
     camera.position.set(0, 0, 5);
     camera.lookAt(0, 0, 0);
@@ -95,31 +117,61 @@ function render_animation(){
 renderer.setAnimationLoop( ()=>{
     //controls.update();
     renderer.render( scene, camera );
+    
 } );
 /**/
+
 function mouseDownHandler(e) {
-    var isRightButton;
-    e = e || window.event;
-
-    if ("which" in e)  // Gecko (Firefox), WebKit (Safari/Chrome) & Opera
-        isRightButton = e.which == 3; 
-    else if ("button" in e)  // IE, Opera 
-        isRightButton = e.button == 2; 
-
-    alert("Right mouse button " + (isRightButton ? "" : " was not ") + "clicked!");
-
-div.addEventListener('contextmenu', function(e) {
-		e.preventDefault();
-});
-    
+    previousMousePosition = {
+        x: e.offsetX,
+        y: e.offsetY
+    };
+    if (e.which == 3) {
+        rightdown = true;        
+    }
+    else if ( e.which == 1){
+        leftdown = true;
+    }
 }
 
 function mouseMoveHandler(e) {
+    
+    if(leftdown==true) {
+        deltaMove = {
+            x: e.offsetX-previousMousePosition.x,
+            y: e.offsetY-previousMousePosition.y
+        };
+        
+    var deltaRotationQuaternion = new THREE.Quaternion()
+            .setFromEuler(new THREE.Euler(
+                deltaMove.y* 0.01* (Math.PI / 360),
+                deltaMove.x * 0.01* (Math.PI / 360),
+                0,
+                'XYZ'
+            ));
+    console.log(deltaRotationQuaternion)
+    pivotPoint.quaternion.multiplyQuaternions(deltaRotationQuaternion, pivotPoint.quaternion);
+    }
+    
+
+    else if(rightdown==true){
+        camera.position.x -= 0.1*(e.offsetX - deltaMove.x)/ render_w ;
+        camera.position.y += 0.1*(e.offsetY - deltaMove.y)/ render_w ;
+        camera.updateProjectionMatrix();
+    }
+    
+    
 }
+
+function mouseUpHandler(e){
+    leftdown = false;
+    rightdown =false;
+}
+
 
 function mouseWheel(e) {
     if(e.wheelDelta>0)
-        camera.position.z +=0.5;
+        camera.position.z -=0.1;
     else if(e.wheelDelta<0)
-        camera.position.z -=0.5;    
+        camera.position.z +=0.1;    
 }
