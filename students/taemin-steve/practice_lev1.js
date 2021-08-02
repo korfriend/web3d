@@ -143,8 +143,8 @@ function mouseUpHandler(e) {
 function mouseMoveHandler(e) {
 
     if(rightButtonClick){
-        forObject3D.translateX( 10 * (e.offsetX - rightButtonMousePosX)/ render_w );
-        forObject3D.translateY( -10 * (e.offsetY - rightButtonMousePosY)/ render_h );
+        cameraSpace.translateX( -10 * (e.offsetX - rightButtonMousePosX)/ render_w );
+        cameraSpace.translateY( 10 * (e.offsetY - rightButtonMousePosY)/ render_h );
     }
     else if(leftButtonClick){
         angleX = -Math.PI*2*2*(e.offsetX - rightButtonMousePosX)/render_w;
