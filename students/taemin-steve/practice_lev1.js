@@ -15,6 +15,8 @@ console.log("devicePixelRatio: " + window.devicePixelRatio);
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera( 75, render_w/render_h, 0.1, 100);
 const renderer = new THREE.WebGLRenderer();
+const cameraSpace = new THREE.Object3D();
+cameraSpace.add(camera);
 //const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(render_w, render_h);
 /// 기본적인 화면 설정
@@ -25,8 +27,9 @@ renderer.setSize(render_w, render_h);
 const geomery = new THREE.BoxGeometry(1, 1, 1);
 const texture = new THREE.TextureLoader().load( './teximg.jpg' );
 const material = new THREE.MeshPhongMaterial( {color:0xFFFFFF, map:texture} );
-///내가 추가해본거
-const forQ = new THREE.Object3D();
+/// add object3D 
+const overallObject3D = new THREE.Object3D();
+const forObject3D = new THREE.Object3D();
 const cube = new THREE.Mesh(geomery, material);
 cube.matrixAutoUpdate = false;
 /// 박스 만들기
@@ -66,11 +69,13 @@ function dom_init() {
 }
 
 function scene_init() {
-    ///내가 넣은거
-    scene.add(forQ);
-    forQ.add(cube);
-    forQ.add(new THREE.AxesHelper(2));
-    forQ.add(light);
+    ///add object3D ,
+    scene.add(cameraSpace);
+    scene.add(overallObject3D);
+    overallObject3D.add(forObject3D)
+    forObject3D.add(cube);
+    forObject3D.add(new THREE.AxesHelper(2));
+    forObject3D.add(light);
     //scene.add(cube);
     //scene.add(new THREE.AxesHelper(2));// 축 생성
 
@@ -113,6 +118,7 @@ let rightButtonMousePosY = 0;
 
 let angleX = 0;
 let angleY = 0;
+let angleYSum = 0;
 
 renderer.setAnimationLoop( ()=>{
     //controls.update();
@@ -135,18 +141,22 @@ function mouseUpHandler(e) {
 }
 
 function mouseMoveHandler(e) {
-    const d = camera.position.distanceTo( new THREE.Vector3());
+
     if(rightButtonClick){
-        camera.position.x -= 10*(e.offsetX - rightButtonMousePosX)/ render_w ;
-        camera.position.y += 10*(e.offsetY - rightButtonMousePosY)/ render_w ;
-        camera.updateProjectionMatrix();
+        cameraSpace.translateX( -10 * (e.offsetX - rightButtonMousePosX)/ render_w );
+        cameraSpace.translateY( 10 * (e.offsetY - rightButtonMousePosY)/ render_h );
     }
     else if(leftButtonClick){
-        //camera.quaternion.multiplyQuaternions(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,0,1),Math.PI/2),camera.quaternion);
-        angleX = Math.PI*2*2*(e.offsetX - rightButtonMousePosX)/render_w;
-        angleY = Math.PI*2*2*(e.offsetY - rightButtonMousePosY)/render_h;
-        forQ.quaternion.multiplyQuaternions(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),angleX),forQ.quaternion);
-        forQ.quaternion.multiplyQuaternions(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),angleY),forQ.quaternion);
+        angleX = -Math.PI*2*2*(e.offsetX - rightButtonMousePosX)/render_w;
+        angleY = -Math.PI*2*2*(e.offsetY - rightButtonMousePosY)/render_h;
+        // angleYSum += angleY;
+        // if((angleYSum > Math.PI/2 )|| (angleYSum< -Math.PI/2)  ){
+        //     angleY = 0;
+        // }
+        //overallObject3D.quaternion.multiplyQuaternions(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),angleY),overallObject3D.quaternion);
+        //overallObject3D.quaternion.multiplyQuaternions(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),angleX),overallObject3D.quaternion);
+        cameraSpace.quaternion.multiplyQuaternions(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),angleY),cameraSpace.quaternion);
+        cameraSpace.quaternion.multiplyQuaternions(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),angleX),cameraSpace.quaternion);
     }
     rightButtonMousePosX = e.offsetX;
     rightButtonMousePosY = e.offsetY;
@@ -154,19 +164,22 @@ function mouseMoveHandler(e) {
 
 
 function mouseWheel(e) {
-    const d = camera.position.distanceTo( new THREE.Vector3());
     
     if(e.wheelDelta > 0){
-        const newD = d - 0.15;
-        camera.position.x *= ( newD / d);
-        camera.position.y *= ( newD / d);
-        camera.position.z *= ( newD / d);
+        const m = new THREE.Matrix4();
+        m.set( 0.95, 0, 0, 0,
+            0, 0.95, 0, 0,
+            0, 0, 0.95, 0,
+            0, 0, 0, 1 );
+        cameraSpace.applyMatrix4(m);
     }
     if(e.wheelDelta < 0){
-        const newD = d + 0.15;
-        camera.position.x *= ( newD / d);
-        camera.position.y *= ( newD / d); 
-        camera.position.z *= ( newD / d);
+        const m = new THREE.Matrix4();
+        m.set( 1.05, 0, 0, 0,
+            0, 1.05, 0, 0,
+            0, 0, 1.05, 0,
+            0, 0, 0, 1 );
+        cameraSpace.applyMatrix4(m);
     } 
 }
 
