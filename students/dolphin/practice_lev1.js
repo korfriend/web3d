@@ -1,5 +1,6 @@
 // https://webdoli.tistory.com/53
 // https://jsfiddle.net/MadLittleMods/n6u6asza/
+// https://stackoverflow.com/questions/19729486/three-js-3d-rotation
 
 /*
 다른 폴더에 있는 모듈을 import 하는 방법 
@@ -132,11 +133,13 @@ renderer.setAnimationLoop( ()=>{ // every available frame
 var isRotating, isPanning;
 var previousMousePosition = {
     x: 0,
-    y: 0
+    y: 0,
+    z: 0
 }
 var deltaMove = {
     x: 0,
-    y: 0
+    y: 0,
+    z: 0
 }
 
 function mouseDownHandler(e) {
@@ -149,19 +152,45 @@ function mouseDownHandler(e) {
         x: e.offsetX,
         y: e.offsetY
     };
-    console.log("isRotating : " + isRotating + ", isPanning : " + isPanning)
+    //console.log("isRotating : " + isRotating + ", isPanning : " + isPanning)
 }
 
 function mouseMoveHandler(e) {
-    if(isRotating) {
-        
-    }
-    
-    /*
     deltaMove = {
         x: e.offsetX-previousMousePosition.x,
-        y: e.offsetY-previousMousePosition.y
+        y: e.offsetY-previousMousePosition.y,
+        z: e.offsetZ-previousMousePosition.z
     };
+
+    if(isRotating) {
+        console.log(camera.matrix);
+
+
+        /*
+        var deltaRotaionQuaternion = new THREE.Quaternion().setFromEuler(new THREE.Euler(
+            deltaMove.y * 0.01 * (Math.PI/180),
+            deltaMove.x * 0.01 * (Math.PI/180),
+            0,
+            'XYZ'
+        ));
+        */
+        let mat_rotation = new THREE.Matrix4();
+        let mat_rotation_x = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(-1,0,0), deltaMove.y * 0.001 * Math.PI/180);
+        let mat_rotation_y = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0,-1,0), deltaMove.x * 0.001 * Math.PI/180);
+        let mat_rotation_z = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0,0,1), deltaMove.z * 0.001 * Math.PI/180); 
+        let transformation = new THREE.Matrix4().makeTranslation(0.01, 0.01, 0.01)
+        mat_rotation.multiply(mat_rotation_x).multiply(mat_rotation_y)//.multiply(mat_rotation_x);
+        
+        camera.matrixWorldNeedsUpdate = true;
+        camera.applyMatrix4(mat_rotation);
+
+        
+        //camera.quaternion.multiplyQuaternions(deltaRotaionQuaternion, camera.quaternion);}
+        //camera.applyMatrix4(mat_rotation.multiply(transformation));
+    }
+}
+    /*
+    
 
     if(isRotating) {
         var deltaRotaionQuaternion = new THREE.Quaternion().setFromEuler(new THREE.Euler(
@@ -177,8 +206,9 @@ function mouseMoveHandler(e) {
         camera.position.y += 0.01 * (deltaMove/render_w);
         camera.updateProjectionMatrix();
     }
+    
     */
-}
+
 
 function mouseUpHandler(e) {
     isRotating = false;
