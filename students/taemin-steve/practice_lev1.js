@@ -182,7 +182,8 @@ function mouseMoveHandler(e) {
         console.log(camera.matrix);
     }
     else if(leftButtonClick){
-        
+        cameraSpace.matrixAutoUpdate = false;
+        cameraSpace.matrixWorldNeedsUpdate = true;
         angleX = -Math.PI*2*2*(e.offsetX - rightButtonMousePosX)/render_w;
         angleY = -Math.PI*2*2*(e.offsetY - rightButtonMousePosY)/render_h;
         // angleYSum += angleY;
