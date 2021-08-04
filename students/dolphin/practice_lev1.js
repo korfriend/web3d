@@ -1,5 +1,6 @@
 // https://webdoli.tistory.com/53
 // https://jsfiddle.net/MadLittleMods/n6u6asza/
+// https://stackoverflow.com/questions/19729486/three-js-3d-rotation
 
 /*
 다른 폴더에 있는 모듈을 import 하는 방법 
@@ -26,7 +27,8 @@ const renderer = new THREE.WebGLRenderer();
 //const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(render_w, render_h);
 
-const controls = new OrbitControls(camera, renderer.domElement);                    // camera가 target 주위를 공전, 제어할 카메라 객체, domElement 이벤트 리스터에 사용되는 HTML element
+//const controls = new OrbitControls(camera, renderer.domElement);                    // camera가 target 주위를 공전, 제어할 카메라 객체, domElement 이벤트 리스터에 사용되는 HTML element
+//matrixAutoUpdate 자동 호출 때문에 
 
 const geometry = new THREE.BoxGeometry(1, 1, 1);                                    // width, height, depth
 const texture = new THREE.TextureLoader().load( './teximg.jpg' );
@@ -41,7 +43,7 @@ let mode_movement = "none";
 
 dom_init();
 scene_init();
-SetOrbitControls(true);
+//SetOrbitControls(true);
 
 
 function dom_init() {
@@ -70,6 +72,8 @@ function dom_init() {
 function scene_init() {
     scene.add(cube);
     scene.add(new THREE.AxesHelper(2));
+    //scene.add(camera);
+    // camera는 굳이 scene에 포함하지 않아도 된다 
 
     light.position.set(-2, 2, 2);
     light.target = cube;
@@ -79,20 +83,33 @@ function scene_init() {
     light_helper = new THREE.DirectionalLightHelper(light, 0.3);                    // light(the light to be visualized), size(dimensions of the plan)
     scene.add( light_helper );
 
-    camera.position.set(0, 0, 5);
-    camera.lookAt(0, 0, 0);
-    camera.up.set(0, 1, 0);
-
+    camera.matrixAutoUpdate = false;
+    //camera.position.set(0, 0, 3);
+    //camera.lookAt(0, 0, 0);
+    //camera.up.set(0, 1, 0);
+    //console.log(camera.matrix)
+    
+    let a = new THREE.Matrix4().makeTranslation(0, 0, 5);
+    let b = new THREE.Matrix4().lookAt(
+        new THREE.Vector3(5, 5, 5), 
+        new THREE.Vector3(0, 0, 0),
+        new THREE.Vector3(0, 1, 0)
+    );
+    
+    // viewing matrix (or viewing transform)
+    camera.matrixWorldNeedsUpdate = true;
+    camera.matrix.copy(a)
+    console.log(camera.matrix);
+    
     //controls.target.set( 0, 0, 0 ); 
 }
 
 function SetOrbitControls(enable_orbitctr){
     controls.enabled = false //enable_orbitctr;     // rotating
-    controls.enablePan = false;             // panning
-    controls.enableZoom = true;             // zooming
+    controls.enablePan = false;                     // panning
+    controls.enableZoom = false;                     // zooming
     controls.enableDamping = false;
     controls.dampingFactor = 0.05;
-
     controls.update(); // camera 변환설정을 수동으로 변경한 후에 호출 
 }
 
@@ -108,7 +125,7 @@ function render_animation(){
 // I strongly recommend you guys to read "Lambda function/code" articles
 renderer.setAnimationLoop( ()=>{ // every available frame
     //controls.update();
-    cube.matrixAutoUpdate = true;
+    //cube.matrixAutoUpdate = true;
     renderer.render( scene, camera );
 } );
 
@@ -133,16 +150,43 @@ function mouseDownHandler(e) {
         x: e.offsetX,
         y: e.offsetY
     };
+    //console.log("isRotating : " + isRotating + ", isPanning : " + isPanning)
 }
 
-// 마우스 클릭 지점  offset -> 옮긴 지점까지의 거리만큼 rotation
-// 마우스 처음 클릭 지점 -> 마우스 뗄때까지 옮긴 지점까지의 거리만큼 camera 이동,panning 
-// rotation시 한계지점을 정해줘야 하나?봄
 function mouseMoveHandler(e) {
     deltaMove = {
         x: e.offsetX-previousMousePosition.x,
         y: e.offsetY-previousMousePosition.y
     };
+
+    if(isRotating) {
+        console.log(camera.matrix);
+
+
+        /*
+        var deltaRotaionQuaternion = new THREE.Quaternion().setFromEuler(new THREE.Euler(
+            deltaMove.y * 0.01 * (Math.PI/180),
+            deltaMove.x * 0.01 * (Math.PI/180),
+            0,
+            'XYZ'
+        ));
+        */
+        let mat_rotation = new THREE.Matrix4();
+        let mat_rotation_x = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(-1,0,0), deltaMove.y * 0.001 * Math.PI/180);
+        let mat_rotation_y = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0,-1,0), deltaMove.x * 0.001 * Math.PI/180);
+        let mat_rotation_z = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0,0,1), 0.001 * Math.PI/180); 
+        let transformation = new THREE.Matrix4().makeTranslation(0.01, 0.01, 0.01)
+        mat_rotation.multiply(mat_rotation_x).multiply(mat_rotation_y).multiply(mat_rotation_z);
+        
+        camera.matrixWorldNeedsUpdate = true;
+        camera.applyMatrix4(mat_rotation);
+
+        //camera.quaternion.multiplyQuaternions(deltaRotaionQuaternion, camera.quaternion);}
+        //camera.applyMatrix4(mat_rotation.multiply(transformation));
+    }
+}
+    /*
+    
 
     if(isRotating) {
         var deltaRotaionQuaternion = new THREE.Quaternion().setFromEuler(new THREE.Euler(
@@ -158,7 +202,9 @@ function mouseMoveHandler(e) {
         camera.position.y += 0.01 * (deltaMove/render_w);
         camera.updateProjectionMatrix();
     }
-}
+    
+    */
+
 
 function mouseUpHandler(e) {
     isRotating = false;
@@ -166,6 +212,35 @@ function mouseUpHandler(e) {
 }
 
 function mouseWheel(e) {
+    camera.matrixAutoUpdate = false;
+    let cam_view = new THREE.Vector3(0, 0, -1); // in the camera space, -z is the viewing direction
+    cam_view.transformDirection(camera.matrix); // refer to THREE.js doc
+    console.log(cam_view);
+
+    let view_move = cam_view.clone();
+
+    let mat_viewingTrans = new THREE.Matrix4();
+    if(e.deltaY > 0) {
+        // wheel down
+        view_move.multiplyScalar(-0.1);
+    }
+    else {
+        // wheel up
+        view_move.multiplyScalar(0.1);
+    }
+    console.log(view_move);
+    mat_viewingTrans.makeTranslation(view_move.x, view_move.y, view_move.z);
+    console.log(mat_viewingTrans);
+
+    let cam_mat_prev = camera.matrix.clone();
+    // cam_mat_prev = mat_viewingTrans * cam_mat_prev
+    cam_mat_prev.premultiply(mat_viewingTrans);
+    // camera.matrix = cam_mat_prev
+    camera.matrixWorldNeedsUpdate = true;
+    camera.matrix.copy(cam_mat_prev);
+    console.log(camera.matrix);
+
+    /*
     const d = camera.position.distanceTo( new THREE.Vector3());
     if(e.wheelDelta>0) {
         const newD = d - 0.15;  
@@ -177,6 +252,8 @@ function mouseWheel(e) {
         camera.position.x *= ( newD / d);
         camera.position.y *= ( newD / d);
         camera.position.z *= ( newD / d);}
+    */
+
     //camera.position.z += event.deltaY / 1000;
     // prevent scrolling beyond a min/max value
     //camera.position.clampScalar(0, 10);
