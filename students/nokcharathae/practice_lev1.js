@@ -159,7 +159,10 @@ function mouseMoveHandler(e) {
         camera.position.y += 0.1*(e.offsetY - deltaMove.y)/ render_w ;
         camera.updateProjectionMatrix();
     }
-    
+    previousMousePosition = {
+        x: e.offsetX,
+        y: e.offsetY
+    };
     
 }
 
