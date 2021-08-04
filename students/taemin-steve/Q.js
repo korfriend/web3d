@@ -82,12 +82,9 @@ function scene_init() {
         new THREE.Vector3(0, 0, 0),
         new THREE.Vector3(0, 1, 0)
         );
-        
-        ///camera.applyMatrix4(a);
-    ///camera.applyMatrix4(b);
-    ///camera.updateMatrix();
     
-    camera.matrixWorld.multiplyMatrices(b,a);
+    camera.matrixWorldNeedsUpdate = true;
+    camera.matrix.multiplyMatrices(b,a);
     //camera.matrix.multiply(b);
 
     //camera.matrix.setPosition(new THREE.Vector3().setFromMatrixPosition(a));

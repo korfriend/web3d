@@ -3,8 +3,8 @@ import { OrbitControls } from "./js/OrbitControls.js";
 import { GUI } from './js/dat.gui.module.js';
 
 // https://threejsfundamentals.org/threejs/lessons/kr/threejs-fundamentals.html
-const render_w = window.innerWidth;
-const render_h = window.innerHeight;
+let render_w = window.innerWidth;
+let render_h = window.innerHeight;
 /// 랜더러의 화면 크기 설정
 
 console.log(render_w, render_h);
@@ -86,11 +86,6 @@ function scene_init() {
 
     light_helper = new THREE.DirectionalLightHelper(light, 0.3);
     scene.add( light_helper );
-
-    // camera.position.set(0, 0, 5);
-    // camera.lookAt(0, 0, 0);
-    // camera.up.set(0, 1, 0);
-
     camera.matrixAutoUpdate = false;
 
     // camera.position.set(0, 0, 5);
@@ -109,16 +104,6 @@ function scene_init() {
     console.log(camera.matrix);
     console.log(camera.position);
     
-    // let a = new THREE.Matrix4().makeTranslation(0, 0, 5);
-    // let b = new THREE.Matrix4().lookAt(
-    //     new THREE.Vector3(5, 5, 5),
-    //     new THREE.Vector3(0, 0, 0),
-    //     new THREE.Vector3(0, 1, 0)
-    // );
-    
-    // camera.matrixWorldNeedsUpdate= true;
-    // camera.matrix.multiplyMatrices(a);
-    // console.log(camera.position);
 
     //controls.target.set( 0, 0, 0 );
 }/// 전체적인 장면의 세부 설정 함수
@@ -172,7 +157,7 @@ function mouseUpHandler(e) {
 function mouseMoveHandler(e) {
 
     if(rightButtonClick){
-       // cameraSpace.translateX( -10 * (e.offsetX - rightButtonMousePosX)/ render_w );
+        // cameraSpace.translateX( -10 * (e.offsetX - rightButtonMousePosX)/ render_w );
         // cameraSpace.translateY( 10 * (e.offsetY - rightButtonMousePosY)/ render_h );
         cameraSpace.matrixAutoUpdate = false;
         cameraSpace.matrixWorldNeedsUpdate = true;
@@ -199,7 +184,6 @@ function mouseMoveHandler(e) {
 
 
 function mouseWheel(e) {
-    
     camera.matrixAutoUpdate = false;
     camera.matrixWorldNeedsUpdate = true;
     let cam_view = new THREE.Vector3(0, 0, -1); // in the camera space, -z is the viewing direction
@@ -227,6 +211,9 @@ function mouseWheel(e) {
     // camera.matrix = cam_mat_prev
     camera.matrix.copy(cam_mat_prev);
 
+    //console.log(camera.matrix);
+
+    
     // if(e.wheelDelta > 0){
     //     const m = new THREE.Matrix4();
     //     m.set( 0.95, 0, 0, 0,
