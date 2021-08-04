@@ -157,14 +157,9 @@ function mouseUpHandler(e) {
 function mouseMoveHandler(e) {
 
     if(rightButtonClick){
-        // cameraSpace.translateX( -10 * (e.offsetX - rightButtonMousePosX)/ render_w );
-        // cameraSpace.translateY( 10 * (e.offsetY - rightButtonMousePosY)/ render_h );
-        cameraSpace.matrixAutoUpdate = false;
-        cameraSpace.matrixWorldNeedsUpdate = true;
-        let a = new THREE.Matrix4().makeTranslation(-10 * (e.offsetX - rightButtonMousePosX)/ render_w, 10*(e.offsetY - rightButtonMousePosY)/ render_h, 0);
-
-        cameraSpace.matrix.multiply(a);
-        console.log(camera.matrix);
+        cameraSpace.translateX( -10 * (e.offsetX - rightButtonMousePosX)/ render_w );
+        cameraSpace.translateY( 10 * (e.offsetY - rightButtonMousePosY)/ render_h );
+       
     }
     else if(leftButtonClick){
         angleX = -Math.PI*2*2*(e.offsetX - rightButtonMousePosX)/render_w;
@@ -174,12 +169,9 @@ function mouseMoveHandler(e) {
         //     angleY = 0;
         // }
         
-        // cameraSpace.quaternion.multiplyQuaternions(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),angleY),cameraSpace.quaternion);
-        // cameraSpace.quaternion.multiplyQuaternions(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),angleX),cameraSpace.quaternion);
-        let a = new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),angleY));
-        let b = new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),angleX));
-        a.multiply(b);
-        cameraSpace.matrix.multiply(a);
+        cameraSpace.quaternion.multiplyQuaternions(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),angleY),cameraSpace.quaternion);
+        cameraSpace.quaternion.multiplyQuaternions(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),angleX),cameraSpace.quaternion);
+        
         
     }
     rightButtonMousePosX = e.offsetX;

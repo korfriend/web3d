@@ -1,17 +1,21 @@
 import * as THREE from "/js/three.module.js";
-import { OrbitControls } from "/js/OrbitControls.js";
-import { GUI } from '/js/dat.gui.module.js';
+import {
+    OrbitControls
+} from "/js/OrbitControls.js";
+import {
+    GUI
+} from '/js/dat.gui.module.js';
 
 // https://threejsfundamentals.org/threejs/lessons/kr/threejs-fundamentals.html
 const render_w = window.innerWidth;
 const render_h = window.innerHeight;
 
 console.log(render_w, render_h);
-console.log("aspectRatio: " + render_w/render_h);
+console.log("aspectRatio: " + render_w / render_h);
 console.log("devicePixelRatio: " + window.devicePixelRatio);
 
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera( 75, render_w/render_h, 0.1, 100);
+const camera = new THREE.PerspectiveCamera(75, render_w / render_h, 0.1, 100);
 const renderer = new THREE.WebGLRenderer();
 //const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(render_w, render_h);
@@ -19,27 +23,26 @@ renderer.setSize(render_w, render_h);
 //const controls = new OrbitControls(camera, renderer.domElement);
 
 const geomery = new THREE.BoxGeometry(1, 1, 1);
-const texture = new THREE.TextureLoader().load( './teximg.jpg' );
-const material = new THREE.MeshPhongMaterial( {color:0xFFFFFF, map:texture} );
+const texture = new THREE.TextureLoader().load('./teximg.jpg');
+const material = new THREE.MeshPhongMaterial({
+    color: 0xFFFFFF,
+    map: texture
+});
 const cube = new THREE.Mesh(geomery, material);
-cube.matrixAutoUpdate = false; 
+cube.matrixAutoUpdate = false;
 
 const light = new THREE.DirectionalLight(0xFFFFFF, 1);
 let light_helper;
 let mode_movement = "none"; //what?
 
 let leftdown = false;
-let rightdown =false;
+let rightdown = false;
 
 var previousMousePosition = {
     x: 0,
     y: 0
 };
 
-var deltaMove = {
-    x: 0,
-    y: 0
-};
 
 dom_init();
 scene_init();
@@ -50,21 +53,21 @@ function dom_init() {
     container.appendChild(renderer.domElement);
     container.addEventListener("mousedown", mouseDownHandler, false);
     container.addEventListener("mousemove", mouseMoveHandler, false);
-    document.addEventListener( 'mouseup', mouseUpHandler, false );
+    document.addEventListener('mouseup', mouseUpHandler, false);
     container.addEventListener("wheel", mouseWheel, false);
-    container.addEventListener('contextmenu', function (e) { 
-        e.preventDefault(); 
+    container.addEventListener('contextmenu', function (e) {
+        e.preventDefault();
     }, false);
 
-    window.addEventListener( 'resize', onWindowResize );
+    window.addEventListener('resize', onWindowResize);
 
     function onWindowResize() {
         render_w = window.innerWidth;
         render_h = window.innerHeight;
-        camera.aspect = render_w/render_h;
+        camera.aspect = render_w / render_h;
         camera.updateProjectionMatrix();
 
-        renderer.setSize( render_w, render_h );
+        renderer.setSize(render_w, render_h);
     }
 }
 
@@ -76,17 +79,17 @@ function scene_init() {
     light.position.set(-2, 2, 2);
     light.target = cube;
     scene.add(light);
-    scene.add( new THREE.AmbientLight( 0x222222 ) );
+    scene.add(new THREE.AmbientLight(0x222222));
 
     light_helper = new THREE.DirectionalLightHelper(light, 0.3);
-    scene.add( light_helper );
+    scene.add(light_helper);
 
     camera.matrixAutoUpdate = false;
     // camera.position.set(0, 0, 5);
     // camera.lookAt(0, 0, 0);
     // camera.up.set(0, 1, 0);
 
-    let a = new THREE.Matrix4().makeTranslation(0, 0, 3);
+    let a = new THREE.Matrix4().makeTranslation(0, 0, 5);
     let b = new THREE.Matrix4().lookAt(
         new THREE.Vector3(0, 0, 5),
         new THREE.Vector3(0, 0, 0),
@@ -94,7 +97,7 @@ function scene_init() {
     );
 
     let mat_cam = new THREE.Matrix4().multiplyMatrices(a, b);
-    camera.matrixWorldNeedsUpdate= true;
+    camera.matrixWorldNeedsUpdate = true;
     camera.matrix.copy(mat_cam);
     // viewing matrix (or viewing transform)
     // camera.matrix.copy(a);// = new THREE.Matrix4().multiplyMatrices(a, b);
@@ -121,64 +124,57 @@ function render_animation(){
 /**/
 // I strongly recommend you guys to read "Lambda function/code" articles
 
-renderer.setAnimationLoop( ()=>{
+renderer.setAnimationLoop(() => {
     //controls.update();
-    renderer.render( scene, camera );
-} );
+    renderer.render(scene, camera);
+});
 /**/
 
 function mouseDownHandler(e) {
-    previousMousePosition = {
-        x: e.offsetX,
-        y: e.offsetY
-    };
     if (e.which == 3) {
-        rightdown = true;        
-    }
-    else if ( e.which == 1){
+        rightdown = true;
+    } else if (e.which == 1) {
         leftdown = true;
     }
 }
 
 function mouseMoveHandler(e) {
-    
-    if(leftdown==true) {
-        deltaMove = {
-            x: e.offsetX-previousMousePosition.x,
-            y: e.offsetY-previousMousePosition.y
-        };
-    }
-    
+    camera.matrixAutoUpdate = false;
+    camera.matrixWorldNeedsUpdate = true;
+    let mat_viewingTrans = new THREE.Matrix4();
+ 
+    if (leftdown == true) {
+        
+        baegopayo=0;
 
-    else if(rightdown==true){
-        deltaMove = {
-            x: e.offsetX-previousMousePosition.x,
-            y: e.offsetY-previousMousePosition.y
-        };
-        let a = new THREE.Matrix4().makeTranslation(-deltaMove.x*0.001, deltaMove.y*0.001, 3);
-        let b = new THREE.Matrix4().lookAt(
-        new THREE.Vector3(0, 0, 5),
-        new THREE.Vector3(0, 0, 0),
-        new THREE.Vector3(0, 1, 0)
-    );
 
-    let mat_cam = new THREE.Matrix4().multiplyMatrices(a, b);
-    camera.matrixWorldNeedsUpdate= true;
-    camera.matrix.copy(mat_cam);
     }
+
+    else if (rightdown == true) {
+        mat_viewingTrans.makeTranslation(-(e.offsetX-previousMousePosition.x)*0.005, 
+        (e.offsetY-previousMousePosition.y)*0.005 ,0);
+    }
+
+    let cam_mat_prev = camera.matrix.clone();
+    cam_mat_prev.premultiply(mat_viewingTrans);
+    camera.matrix.copy(cam_mat_prev);
     
-    
+    previousMousePosition = {
+        x: e.offsetX,
+        y: e.offsetY
+    };
+
 }
 
-function mouseUpHandler(e){
+function mouseUpHandler(e) {
     leftdown = false;
-    rightdown =false;
+    rightdown = false;
 }
 
 
 function mouseWheel(e) {
     camera.matrixAutoUpdate = false;
-    camera.matrixWorldNeedsUpdate=true;
+    camera.matrixWorldNeedsUpdate = true;
     let cam_view = new THREE.Vector3(0, 0, -1); // in the camera space, -z is the viewing direction
     cam_view.transformDirection(camera.matrix); // refer to THREE.js doc
     //console.log(cam_view);
@@ -186,11 +182,10 @@ function mouseWheel(e) {
     let view_move = cam_view.clone();
 
     let mat_viewingTrans = new THREE.Matrix4();
-    if(e.deltaY > 0) {
+    if (e.deltaY > 0) {
         // wheel down
         view_move.multiplyScalar(-0.1);
-    }
-    else {
+    } else {
         // wheel up
         view_move.multiplyScalar(0.1);
     }
@@ -202,6 +197,6 @@ function mouseWheel(e) {
     // cam_mat_prev = mat_viewingTrans * cam_mat_prev
     cam_mat_prev.premultiply(mat_viewingTrans);
     // camera.matrix = cam_mat_prev
-    camera.matrix.copy(cam_mat_prev);  
-    console.log("after->",camera.matrix);
+    camera.matrix.copy(cam_mat_prev);
+    console.log("after->", camera.matrix);
 }

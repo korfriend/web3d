@@ -25,7 +25,7 @@ renderer.setSize(render_w, render_h);
 
 
 const geomery = new THREE.BoxGeometry(1, 1, 1);
-const texture = new THREE.TextureLoader().load( './teximg.jpg' );
+const texture = new THREE.TextureLoader().load( './teximg.PNG' );
 const material = new THREE.MeshPhongMaterial( {color:0xFFFFFF, map:texture} );
 /// add object3D 
 const overallObject3D = new THREE.Object3D();
@@ -171,11 +171,13 @@ function mouseUpHandler(e) {
 
 function mouseMoveHandler(e) {
 
+    cameraSpace.matrixAutoUpdate = false;
+    cameraSpace.matrixWorldNeedsUpdate = true;
+
     if(rightButtonClick){
        // cameraSpace.translateX( -10 * (e.offsetX - rightButtonMousePosX)/ render_w );
         // cameraSpace.translateY( 10 * (e.offsetY - rightButtonMousePosY)/ render_h );
-        cameraSpace.matrixAutoUpdate = false;
-        cameraSpace.matrixWorldNeedsUpdate = true;
+        
         let a = new THREE.Matrix4().makeTranslation(-10 * (e.offsetX - rightButtonMousePosX)/ render_w, 10*(e.offsetY - rightButtonMousePosY)/ render_h, 0);
 
         cameraSpace.matrix.multiply(a);
