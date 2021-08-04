@@ -144,18 +144,18 @@ function mouseMoveHandler(e) {
         
     var deltaRotationQuaternion = new THREE.Quaternion()
             .setFromEuler(new THREE.Euler(
-                deltaMove.y* 0.01* (Math.PI / 360),
-                deltaMove.x * 0.01* (Math.PI / 360),
+                deltaMove.y* 0.01* (Math.PI / 180),
+                deltaMove.x * 0.01* (Math.PI / 180),
                 0,
                 'XYZ'
             ));
     console.log(deltaRotationQuaternion)
-    pivotPoint.quaternion.multiplyQuaternions(deltaRotationQuaternion, pivotPoint.quaternion);
+    pivotPoint.quaternion.multiplyQuaternions(deltaRotationQuaternion, pivotPoint.quaternion);  
     }
     
 
     else if(rightdown==true){
-        camera.position.x -= 0.1*(e.offsetX - deltaMove.x)/ render_w ;
+        camera.position.x += 0.1*(e.offsetX - deltaMove.x)/ render_w ;
         camera.position.y += 0.1*(e.offsetY - deltaMove.y)/ render_w ;
         camera.updateProjectionMatrix();
     }
