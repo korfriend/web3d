@@ -25,7 +25,7 @@ renderer.setSize(render_w, render_h);
 
 
 const geomery = new THREE.BoxGeometry(1, 1, 1);
-const texture = new THREE.TextureLoader().load( './teximg.jpg' );
+const texture = new THREE.TextureLoader().load( './teximg.PNG' );
 const material = new THREE.MeshPhongMaterial( {color:0xFFFFFF, map:texture} );
 /// add object3D 
 const overallObject3D = new THREE.Object3D();
