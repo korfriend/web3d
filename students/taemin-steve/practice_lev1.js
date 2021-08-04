@@ -171,11 +171,13 @@ function mouseUpHandler(e) {
 
 function mouseMoveHandler(e) {
 
+    cameraSpace.matrixAutoUpdate = false;
+    cameraSpace.matrixWorldNeedsUpdate = true;
+
     if(rightButtonClick){
        // cameraSpace.translateX( -10 * (e.offsetX - rightButtonMousePosX)/ render_w );
         // cameraSpace.translateY( 10 * (e.offsetY - rightButtonMousePosY)/ render_h );
-        cameraSpace.matrixAutoUpdate = false;
-        cameraSpace.matrixWorldNeedsUpdate = true;
+        
         let a = new THREE.Matrix4().makeTranslation(-10 * (e.offsetX - rightButtonMousePosX)/ render_w, 10*(e.offsetY - rightButtonMousePosY)/ render_h, 0);
 
         cameraSpace.matrix.multiply(a);
