@@ -149,9 +149,15 @@ function mouseDownHandler(e) {
         x: e.offsetX,
         y: e.offsetY
     };
+    console.log("isRotating : " + isRotating + ", isPanning : " + isPanning)
 }
 
 function mouseMoveHandler(e) {
+    if(isRotating) {
+        
+    }
+    
+    /*
     deltaMove = {
         x: e.offsetX-previousMousePosition.x,
         y: e.offsetY-previousMousePosition.y
@@ -171,6 +177,7 @@ function mouseMoveHandler(e) {
         camera.position.y += 0.01 * (deltaMove/render_w);
         camera.updateProjectionMatrix();
     }
+    */
 }
 
 function mouseUpHandler(e) {
@@ -203,6 +210,7 @@ function mouseWheel(e) {
     // cam_mat_prev = mat_viewingTrans * cam_mat_prev
     cam_mat_prev.premultiply(mat_viewingTrans);
     // camera.matrix = cam_mat_prev
+    camera.matrixWorldNeedsUpdate = true;
     camera.matrix.copy(cam_mat_prev);
     console.log(camera.matrix);
 
