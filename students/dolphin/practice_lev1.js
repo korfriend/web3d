@@ -133,13 +133,11 @@ renderer.setAnimationLoop( ()=>{ // every available frame
 var isRotating, isPanning;
 var previousMousePosition = {
     x: 0,
-    y: 0,
-    z: 0
+    y: 0
 }
 var deltaMove = {
     x: 0,
-    y: 0,
-    z: 0
+    y: 0
 }
 
 function mouseDownHandler(e) {
@@ -158,8 +156,7 @@ function mouseDownHandler(e) {
 function mouseMoveHandler(e) {
     deltaMove = {
         x: e.offsetX-previousMousePosition.x,
-        y: e.offsetY-previousMousePosition.y,
-        z: e.offsetZ-previousMousePosition.z
+        y: e.offsetY-previousMousePosition.y
     };
 
     if(isRotating) {
@@ -177,14 +174,13 @@ function mouseMoveHandler(e) {
         let mat_rotation = new THREE.Matrix4();
         let mat_rotation_x = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(-1,0,0), deltaMove.y * 0.001 * Math.PI/180);
         let mat_rotation_y = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0,-1,0), deltaMove.x * 0.001 * Math.PI/180);
-        let mat_rotation_z = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0,0,1), deltaMove.z * 0.001 * Math.PI/180); 
+        let mat_rotation_z = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0,0,1), 0.001 * Math.PI/180); 
         let transformation = new THREE.Matrix4().makeTranslation(0.01, 0.01, 0.01)
-        mat_rotation.multiply(mat_rotation_x).multiply(mat_rotation_y)//.multiply(mat_rotation_x);
+        mat_rotation.multiply(mat_rotation_x).multiply(mat_rotation_y).multiply(mat_rotation_z);
         
         camera.matrixWorldNeedsUpdate = true;
         camera.applyMatrix4(mat_rotation);
 
-        
         //camera.quaternion.multiplyQuaternions(deltaRotaionQuaternion, camera.quaternion);}
         //camera.applyMatrix4(mat_rotation.multiply(transformation));
     }
