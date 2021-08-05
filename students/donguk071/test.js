@@ -150,12 +150,11 @@ function mouseMoveHandler(e) {
        let x = -0.01*(e.offsetX-rightButtonMousePosX); 
        let y = -0.01*(e.offsetY-rightButtonMousePosY); 
 
-      let aa = new THREE.Matrix4();
       let R1 = new THREE.Matrix4().makeRotationY(x);
       let R2 = new THREE.Matrix4().makeRotationX(y);
       
-      aa.multiply(R1).multiply(R2);
-      forcamera.applyMatrix4(aa);
+      R1.multiply(R2);
+      forcamera.matrix.multiply(R1);
         //카메라스페이스 추가해서 해결해보자
         //카메라가 translation되어야하나?
 
@@ -168,7 +167,7 @@ function mouseMoveHandler(e) {
     rightButtonMousePosX = e.offsetX;
     rightButtonMousePosY = e.offsetY;
 
-} //오류원인 카메라 좌표계를 다른 좌표계로 감싸주었더니 해결
+} //오류원인 - 카메라 좌표계를 다른 좌표계로 감싸주었더니 해결
 
 
 function mouseWheel(e) {
