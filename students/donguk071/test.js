@@ -3,8 +3,8 @@ import * as THREE from "../../js/three.module.js";
 import { OrbitControls } from "../../js/OrbitControls.js";
 import { GUI } from '../../js/dat.gui.module.js';
 
+// matrix / wordmatrix
 
-// https://threejsfundamentals.org/threejs/lessons/kr/threejs-fundamentals.html
 const render_w = window.innerWidth;                                                
 const render_h = window.innerHeight;
 
@@ -31,11 +31,16 @@ const light = new THREE.DirectionalLight(0xFFFFFF, 1);
 let light_helper;
 let mode_movement = "none";
 
+////추가좌표////
+const forcube = new THREE.Object3D();
+const forcamera = new THREE.Object3D();
+forcamera.add(camera);
+
+
 
 
 dom_init();
 scene_init();
-//SetOrbitControls(true);
 
 
 function dom_init() {
@@ -63,14 +68,17 @@ function dom_init() {
 }
 
 function scene_init() {
-    scene.add(cube);
-    scene.add(new THREE.AxesHelper(2));
+    scene.add(forcamera);
+    scene.add(forcube);
+    //좌표계하나에 두개의 좌표계를 추가하여 상대적인 움직임을 보여줘보자
+    forcube.add(cube);
+    forcube.add(new THREE.AxesHelper(2));
     //scene.add(camera);
     // camera는 굳이 scene에 포함하지 않아도 된다 
 
     light.position.set(-2, 2, 2);
     light.target = cube;
-    scene.add(light);
+    forcube.add(light);
     scene.add( new THREE.AmbientLight( 0x222222 ) );
 
     light_helper = new THREE.DirectionalLightHelper(light, 0.3);                    // light(the light to be visualized), size(dimensions of the plan)
@@ -127,32 +135,40 @@ function mouseUpHandler(e) {
 }
 
 function mouseMoveHandler(e) {
-    camera.matrixAutoUpdate = false;
-    camera.matrixWorldNeedsUpdate = true;
+    forcamera.matrixAutoUpdate = false;
+    forcamera.matrixWorldNeedsUpdate = true;
     if(rightButtonClick){
         let tran = new THREE.Matrix4().makeTranslation((e.offsetX-rightButtonMousePosX)*-0.01,(e.offsetY-rightButtonMousePosY)*0.01,0); 
-        camera.matrix.multiply(tran);
+        forcamera.matrix.multiply(tran);
         }
     if(leftButtonClick){
+
+        forcamera.matrixAutoUpdate = false;
+        forcamera.matrixWorldNeedsUpdate = true;
       //rotation 후 translation 후 곱해주기
-      var x = e.offsetX-rightButtonMousePosX; 
-      var y = e.offsetY-rightButtonMousePosY; 
+    
+       let x = -0.01*(e.offsetX-rightButtonMousePosX); 
+       let y = -0.01*(e.offsetY-rightButtonMousePosY); 
 
       let aa = new THREE.Matrix4();
-      let R1 = new THREE.Matrix4().makeRotationY(-0.002*x);
-      let R2 = new THREE.Matrix4().makeRotationX(-0.002*y);
+      let R1 = new THREE.Matrix4().makeRotationY(x);
+      let R2 = new THREE.Matrix4().makeRotationX(y);
       
       aa.multiply(R1).multiply(R2);
-    
-      camera.applyMatrix4(aa);
+      forcamera.applyMatrix4(aa);
+        //카메라스페이스 추가해서 해결해보자
+        //카메라가 translation되어야하나?
 
-      //let T1 = new THREE.Matrix4().makeTranslation();
-      //let RT11 = new THREE.Matrix4().multiplyMatrices(R1,T1);
+        // let a = new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),y));
+        // let b = new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),x));
+        // a.multiply(b);
+        // forcamera.matrix.multiply(a);
+
     }  
     rightButtonMousePosX = e.offsetX;
     rightButtonMousePosY = e.offsetY;
 
-}
+} //오류원인 카메라 좌표계를 다른 좌표계로 감싸주었더니 해결
 
 
 function mouseWheel(e) {
