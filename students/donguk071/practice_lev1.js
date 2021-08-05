@@ -53,7 +53,7 @@ function dom_init() {
         var render_w = window.innerWidth; // 내가 변수 선언해준거임
         var render_h = window.innerHeight;
         camera.aspect = render_w/render_h;
-        camera.updateProjectionMatrix(); //여기도 분석
+        camera.updateProjectionMatrix(); 
 
         renderer.setSize( render_w, render_h );
     } // 사이즈 조절이라 크게는 신경 안써도 될듯?
@@ -98,7 +98,6 @@ function mouseDownHandler(e) {
         leftButtonClick = true; 
     }
     else if (e.button === 2) { 
-        console.log("r");
         rightButtonClick = true;
     }
 }
@@ -127,7 +126,6 @@ function mouseMoveHandler(e) {
     }  
     rightButtonMousePosX = e.offsetX;
     rightButtonMousePosY = e.offsetY;
-
 }
 
 function mouseWheel(e) {
