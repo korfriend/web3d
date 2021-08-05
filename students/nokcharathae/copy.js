@@ -43,6 +43,8 @@ var previousMousePosition = {
     y: 0
 };
 
+let angleX = 0;
+let angleY = 0;
 
 dom_init();
 scene_init();
@@ -145,8 +147,6 @@ function mouseMoveHandler(e) {
  
     if (leftdown == true) {
         
-        baegopayo=0;
-
 
     }
 
