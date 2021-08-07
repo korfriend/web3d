@@ -162,7 +162,6 @@ function mouseMoveHandler(e) {
     if(isRotating) {
         console.log(camera.matrix);
 
-
         /*
         var deltaRotaionQuaternion = new THREE.Quaternion().setFromEuler(new THREE.Euler(
             deltaMove.y * 0.01 * (Math.PI/180),
@@ -171,12 +170,18 @@ function mouseMoveHandler(e) {
             'XYZ'
         ));
         */
+
         let mat_rotation = new THREE.Matrix4();
-        let mat_rotation_x = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(-1,0,0), deltaMove.y * 0.001 * Math.PI/180);
-        let mat_rotation_y = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0,-1,0), deltaMove.x * 0.001 * Math.PI/180);
+        let mat_rotation_x = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(-1,0,0), deltaMove.y * 0.1 * Math.PI/180);
+        let mat_rotation_y = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0,-1,0), deltaMove.x * 0.1 * Math.PI/180);
         let mat_rotation_z = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0,0,1), 0.001 * Math.PI/180); 
-        let transformation = new THREE.Matrix4().makeTranslation(0.01, 0.01, 0.01)
-        mat_rotation.multiply(mat_rotation_x).multiply(mat_rotation_y).multiply(mat_rotation_z);
+        let transformation = new THREE.Matrix4().makeTranslation(
+            deltaMove.x - camera.position.x,
+            deltaMove.y - camera.position.y,
+            camera.position.z
+        );
+        transformation.getInverse(transformation);
+        mat_rotation.multiply(mat_rotation_x).multiply(mat_rotation_y).multiply(transformation)//.multiply(mat_rotation_z);
         
         camera.matrixWorldNeedsUpdate = true;
         camera.applyMatrix4(mat_rotation);
@@ -184,27 +189,20 @@ function mouseMoveHandler(e) {
         //camera.quaternion.multiplyQuaternions(deltaRotaionQuaternion, camera.quaternion);}
         //camera.applyMatrix4(mat_rotation.multiply(transformation));
     }
-}
-    /*
     
-
-    if(isRotating) {
-        var deltaRotaionQuaternion = new THREE.Quaternion().setFromEuler(new THREE.Euler(
-            deltaMove.y * 0.01 * (Math.PI/180),
-            deltaMove.x * 0.01 * (Math.PI/180),
-            0,
-            'XYZ'
-        ));
-        cube.quaternion.multiplyQuaternions(deltaRotaionQuaternion, cube.quaternion);}
-
     else if(isPanning) {
-        camera.position.x -= 0.01 * (deltaMove/render_w);
-        camera.position.y += 0.01 * (deltaMove/render_w);
-        camera.updateProjectionMatrix();
-    }
-    
-    */
+        let a = new THREE.Matrix4().makeTranslation(-10* (deltaMove.x/ render_w), 10* (deltaMove.y/ render_h), 0);
 
+        camera.matrixWorldNeedsUpdate = true;
+        camera.matrix.multiply(a);
+        console.log(camera.matrix);
+    }
+
+    previousMousePosition = {
+        x: e.offsetX,
+        y: e.offsetY
+    };
+}
 
 function mouseUpHandler(e) {
     isRotating = false;
@@ -212,10 +210,10 @@ function mouseUpHandler(e) {
 }
 
 function mouseWheel(e) {
-    camera.matrixAutoUpdate = false;
+    //camera.matrixAutoUpdate = false;
     let cam_view = new THREE.Vector3(0, 0, -1); // in the camera space, -z is the viewing direction
     cam_view.transformDirection(camera.matrix); // refer to THREE.js doc
-    console.log(cam_view);
+    //console.log(cam_view);
 
     let view_move = cam_view.clone();
 
@@ -228,9 +226,9 @@ function mouseWheel(e) {
         // wheel up
         view_move.multiplyScalar(0.1);
     }
-    console.log(view_move);
+    //console.log(view_move);
     mat_viewingTrans.makeTranslation(view_move.x, view_move.y, view_move.z);
-    console.log(mat_viewingTrans);
+    //console.log(mat_viewingTrans);
 
     let cam_mat_prev = camera.matrix.clone();
     // cam_mat_prev = mat_viewingTrans * cam_mat_prev
@@ -238,7 +236,7 @@ function mouseWheel(e) {
     // camera.matrix = cam_mat_prev
     camera.matrixWorldNeedsUpdate = true;
     camera.matrix.copy(cam_mat_prev);
-    console.log(camera.matrix);
+    //console.log(camera.matrix);
 
     /*
     const d = camera.position.distanceTo( new THREE.Vector3());
