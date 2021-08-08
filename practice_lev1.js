@@ -69,7 +69,8 @@ function scene_init() {
 
     camera.matrixAutoUpdate = false;
     console.log(camera.matrixAutoUpdate, camera.matrixWorldNeedsUpdate, cube.matrixWorldNeedsUpdate);
-    // .position, .lookAt, and .up for 
+    // .position, .lookAt, and .up for camera.matrixAutoUpdate = true setting
+    // e.g., OrbitControls
     camera.position.set(5, 5, 5);
     camera.lookAt(0, 0, 0);
     camera.up.set(0, 1, 0);
