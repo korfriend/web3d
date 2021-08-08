@@ -12,15 +12,15 @@ console.log("devicePixelRatio: " + window.devicePixelRatio);
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera( 75, render_w/render_h, 0.1, 100);
-const renderer = new THREE.WebGLRenderer();
-//const renderer = new THREE.WebGLRenderer({ antialias: true });
+//const renderer = new THREE.WebGLRenderer();
+const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(render_w, render_h);
 
-//const controls = new OrbitControls(camera, renderer.domElement);
+const controls = new OrbitControls(camera, renderer.domElement);
 
 const geomery = new THREE.BoxGeometry(1, 1, 1);
 const texture = new THREE.TextureLoader().load( './teximg.jpg' );
-const material = new THREE.MeshPhongMaterial( {color:0xFFFFFF, map:texture} );
+const material = new THREE.MeshPhongMaterial( {color:0xFFFFFF, map:texture, side:THREE.DoubleSide } );
 const cube = new THREE.Mesh(geomery, material);
 cube.matrixAutoUpdate = false;
 
@@ -30,9 +30,7 @@ let mode_movement = "none";
 
 dom_init();
 scene_init();
-//SetOrbitControls(true);
-//SetOrbitControls(false);
-//camera.matrixAutoUpdate = false;
+set_orbitcontrols(false);
 
 function dom_init() {
     const container = document.getElementById('render_div');
@@ -60,7 +58,6 @@ function dom_init() {
 function scene_init() {
     scene.add(cube);
     scene.add(new THREE.AxesHelper(2));
-    //scene.add(camera);
 
     light.position.set(-2, 2, 2);
     light.target = cube;
@@ -71,25 +68,31 @@ function scene_init() {
     scene.add( light_helper );
 
     camera.matrixAutoUpdate = false;
-    //camera.position.set(0, 0, 3);
-    //camera.lookAt(0, 0, 0);
-    //camera.up.set(0, 1, 0);
+    console.log(camera.matrixAutoUpdate, camera.matrixWorldNeedsUpdate, cube.matrixWorldNeedsUpdate);
+    // .position, .lookAt, and .up for 
+    camera.position.set(5, 5, 5);
+    camera.lookAt(0, 0, 0);
+    camera.up.set(0, 1, 0);
 
-    let a = new THREE.Matrix4().makeTranslation(0, 0, 3);
+    let a = new THREE.Matrix4().makeTranslation(5, 5, 5);
     let b = new THREE.Matrix4().lookAt(
         new THREE.Vector3(5, 5, 5),
         new THREE.Vector3(0, 0, 0),
         new THREE.Vector3(0, 1, 0)
     );
+    let mat_cam = new THREE.Matrix4().multiplyMatrices(a, b);
 
     // viewing matrix (or viewing transform)
-    camera.matrix.copy(a);// = new THREE.Matrix4().multiplyMatrices(a, b);
+    //camera.matrix.copy(a);// = new THREE.Matrix4().multiplyMatrices(a, b);
+    camera.matrix.copy(mat_cam);
+    camera.matrixWorldNeedsUpdate = true;
+    //camera.updateMatrix();
     console.log(camera.matrix);
-
-    //controls.target.set( 0, 0, 0 );
+    console.log(camera.matrixWorld);;
 }
 
-function SetOrbitControls(enable_orbitctr){
+function set_orbitcontrols(enable_orbitctr){
+    if (enable_orbitctr) camera.matrixAutoUpdate = true;
     controls.enabled = enable_orbitctr;
     controls.enablePan = true;
     controls.enableZoom = true;
@@ -107,7 +110,7 @@ function render_animation(){
 /**/
 // I strongly recommend you guys to read "Lambda function/code" articles
 renderer.setAnimationLoop( ()=>{
-    //controls.update();
+    controls.update();
     renderer.render( scene, camera );
 } );
 /**/
@@ -118,7 +121,8 @@ function mouseMoveHandler(e) {
 }
 
 function mouseWheel(e) {
-    camera.matrixAutoUpdate = false;
+    if (controls.enabled) return;
+
     let cam_view = new THREE.Vector3(0, 0, -1); // in the camera space, -z is the viewing direction
     cam_view.transformDirection(camera.matrix); // refer to THREE.js doc
     console.log(cam_view);
@@ -143,4 +147,5 @@ function mouseWheel(e) {
     cam_mat_prev.premultiply(mat_viewingTrans);
     // camera.matrix = cam_mat_prev
     camera.matrix.copy(cam_mat_prev);
+    camera.matrixWorldNeedsUpdate = true;
 }
