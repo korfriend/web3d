@@ -148,11 +148,36 @@ function mouseMoveHandler(e) {
     if (leftdown == true) {
         
 
+        // let pos = new THREE.Vector3();
+        // pos = pos.setFromMatrixPosition(camera.matrix);
+        // pos.project(camera);
+
+        // let widthHalf = render_w / 2;
+        // let heightHalf = render_h / 2;
+
+        // pos.x = (pos.x * widthHalf) + widthHalf;
+        // pos.y = - (pos.y * heightHalf) + heightHalf;
+        // pos.z = 0;
+
+        // console.log(pos);
+
+        angleX = Math.PI*2*2*(e.offsetX - previousMousePosition.x)/render_w;
+        angleY = Math.PI*2*2*(e.offsetY - previousMousePosition.y)/render_h;
+        console.log(angleX,", ",angleY);
+        const myAxis = new THREE.Vector3(0,0,1);
+        axis = new Vector3().cross(up, normal);
+        mat_viewingTrans.makeRotationAxis(myAxis.normalize(),angle);
+        //mat_viewingTrans.makeRotationAxis(yAxis,angleY);
+        const quat = new Quaternion().setFromAxisAngle(axis, radians);
+        newVector.applyQuaternion(quat);
+
+
     }
 
     else if (rightdown == true) {
-        mat_viewingTrans.makeTranslation(-(e.offsetX-previousMousePosition.x)*0.005, 
-        (e.offsetY-previousMousePosition.y)*0.005 ,0);
+        mat_viewingTrans.makeTranslation(-(e.offsetX-previousMousePosition.x)/render_w*5, 
+        (e.offsetY-previousMousePosition.y)/render_h*5,0);
+        console.log(previousMousePosition);
     }
 
     let cam_mat_prev = camera.matrix.clone();
@@ -163,7 +188,7 @@ function mouseMoveHandler(e) {
         x: e.offsetX,
         y: e.offsetY
     };
-
+    
 }
 
 function mouseUpHandler(e) {
