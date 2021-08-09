@@ -13,5 +13,5 @@ You guys are supposed to do the following:
 ### Progress
 1. Explore a number of Object3D and Matrix4 provided by THREE.js, and try them. (July. 29th)
 2. Understand what the matrix transformations are in terms of the graphics pipeline, e.g., transformations between the screen space, projection space, camera space, and world space. (Aug. 2nd)
-3. Understand what the matrix transformations are in terms of model transformation, e.g., transformations between between the scene's world space and local space, and learn how .matrix and .matrixWorld are set up and behave. (Aug. 5th)
+3. Understand what the matrix transformations are in terms of model transformation, e.g., transformations between the scene's world space and local space, and learn how .matrix and .matrixWorld are set up and behave. (Aug. 5th)
 4. Complete the transformations both in model transformations and in graphics pipeline transformations. (in progress...)
