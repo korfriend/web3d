@@ -13,7 +13,9 @@ console.log("devicePixelRatio: " + window.devicePixelRatio);
 
 
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera( 75, render_w/render_h, 0.1, 100);
+const far = 100;
+const near = 0.1 ;
+const camera = new THREE.PerspectiveCamera( 75, render_w/render_h, near, far);
 const renderer = new THREE.WebGLRenderer();
 const cameraSpace = new THREE.Object3D();
 cameraSpace.add(camera);
@@ -42,7 +44,7 @@ let mode_movement = "none";
 
 dom_init();
 scene_init();
-SetOrbitControls(true);
+//SetOrbitControls(true);
 
 function dom_init() {
     const container = document.getElementById('render_div');
@@ -87,15 +89,8 @@ function scene_init() {
     light_helper = new THREE.DirectionalLightHelper(light, 0.3);
     scene.add( light_helper );
 
-    // camera.position.set(0, 0, 5);
-    // camera.lookAt(0, 0, 0);
-    // camera.up.set(0, 1, 0);
-
     camera.matrixAutoUpdate = false;
 
-    // camera.position.set(0, 0, 5);
-    // camera.lookAt(0, 0, 0);
-    // camera.up.set(0, 1, 0);
     
     let a = new THREE.Matrix4().makeTranslation(0, 0, 5);
     let b = new THREE.Matrix4().lookAt(
@@ -123,14 +118,14 @@ function scene_init() {
     //controls.target.set( 0, 0, 0 );
 }/// 전체적인 장면의 세부 설정 함수
 
-function SetOrbitControls(enable_orbitctr){
+//function SetOrbitControls(enable_orbitctr){
     // controls.enabled = enable_orbitctr;
     // controls.enablePan = true;
     // controls.enableZoom = true;
     // controls.enableDamping = true;
     // controls.dampingFactor = 0.05;
     // controls.update();
-}
+//}
 /*
 render_animation();
 function render_animation(){
@@ -147,7 +142,6 @@ let rightButtonMousePosY = 0;
 
 let angleX = 0;
 let angleY = 0;
-let angleYSum = 0;
 
 renderer.setAnimationLoop( ()=>{
     //controls.update();
@@ -169,39 +163,40 @@ function mouseUpHandler(e) {
     leftButtonClick = false;
 }
 
+const raycaster = new THREE.Raycaster();
+const p = new THREE.Plane(new THREE.Vector3(0,0,1),0);
+
 function mouseMoveHandler(e) {
 
     cameraSpace.matrixAutoUpdate = false;
     cameraSpace.matrixWorldNeedsUpdate = true;
 
+    let mouse3D = new THREE.Vector2( ( e.clientX /render_w ) * 2 - 1,
+                                    -( e.clientY / render_h ) * 2 + 1);
+    let transformedPos = new THREE.Vector3();
+                                    
+    raycaster.setFromCamera(mouse3D, camera);
+    raycaster.ray.intersectPlane(p,transformedPos);
+
     if(rightButtonClick){
-       // cameraSpace.translateX( -10 * (e.offsetX - rightButtonMousePosX)/ render_w );
-        // cameraSpace.translateY( 10 * (e.offsetY - rightButtonMousePosY)/ render_h );
         
-        let a = new THREE.Matrix4().makeTranslation(-10 * (e.offsetX - rightButtonMousePosX)/ render_w, 10*(e.offsetY - rightButtonMousePosY)/ render_h, 0);
+        let a = new THREE.Matrix4().makeTranslation(-transformedPos.x, -transformedPos.y, transformedPos.z);
 
         cameraSpace.matrix.multiply(a);
         console.log(camera.matrix);
     }
     else if(leftButtonClick){
-        cameraSpace.matrixAutoUpdate = false;
-        cameraSpace.matrixWorldNeedsUpdate = true;
-        angleX = -Math.PI*2*2*(e.offsetX - rightButtonMousePosX)/render_w;
-        angleY = -Math.PI*2*2*(e.offsetY - rightButtonMousePosY)/render_h;
-        // angleYSum += angleY;
-        // if((angleYSum > Math.PI/2 )|| (angleYSum< -Math.PI/2)  ){
-        //     angleY = 0;
-        // }
         
-        // cameraSpace.quaternion.multiplyQuaternions(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),angleY),cameraSpace.quaternion);
-        // cameraSpace.quaternion.multiplyQuaternions(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),angleX),cameraSpace.quaternion);
+        angleX = -Math.PI*2*2*(e.clientX - rightButtonMousePosX)/render_w;
+        angleY = -(Math.PI*2*2*(e.clientY - rightButtonMousePosY)/render_h)*(render_h/render_w);
+        
         let a = new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),angleY));
         let b = new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),angleX));
         a.multiply(b);
         cameraSpace.matrix.multiply(a);
     }
-    rightButtonMousePosX = e.offsetX;
-    rightButtonMousePosY = e.offsetY;
+    rightButtonMousePosX = e.clientX;
+    rightButtonMousePosY = e.clientY;
 }
 
 
@@ -233,22 +228,5 @@ function mouseWheel(e) {
     cam_mat_prev.premultiply(mat_viewingTrans);
     // camera.matrix = cam_mat_prev
     camera.matrix.copy(cam_mat_prev);
-
-    // if(e.wheelDelta > 0){
-    //     const m = new THREE.Matrix4();
-    //     m.set( 0.95, 0, 0, 0,
-    //         0, 0.95, 0, 0,
-    //         0, 0, 0.95, 0,
-    //         0, 0, 0, 1 );
-    //     cameraSpace.applyMatrix4(m);
-    // }
-    // if(e.wheelDelta < 0){
-    //     const m = new THREE.Matrix4();
-    //     m.set( 1.05, 0, 0, 0,
-    //         0, 1.05, 0, 0,
-    //         0, 0, 1.05, 0,
-    //         0, 0, 0, 1 );
-    //     cameraSpace.applyMatrix4(m);
-    // } 
 }
 

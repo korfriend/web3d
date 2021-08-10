@@ -3,8 +3,8 @@ import { OrbitControls } from "./js/OrbitControls.js";
 import { GUI } from './js/dat.gui.module.js';
 
 // https://threejsfundamentals.org/threejs/lessons/kr/threejs-fundamentals.html
-let render_w = window.innerWidth;
-let render_h = window.innerHeight;
+const render_w = window.innerWidth;
+const render_h = window.innerHeight;
 /// 랜더러의 화면 크기 설정
 
 console.log(render_w, render_h);
@@ -25,7 +25,7 @@ renderer.setSize(render_w, render_h);
 
 
 const geomery = new THREE.BoxGeometry(1, 1, 1);
-const texture = new THREE.TextureLoader().load( './teximg.jpg' );
+const texture = new THREE.TextureLoader().load( './teximg.PNG' );
 const material = new THREE.MeshPhongMaterial( {color:0xFFFFFF, map:texture} );
 /// add object3D 
 const overallObject3D = new THREE.Object3D();
@@ -86,6 +86,11 @@ function scene_init() {
 
     light_helper = new THREE.DirectionalLightHelper(light, 0.3);
     scene.add( light_helper );
+
+    // camera.position.set(0, 0, 5);
+    // camera.lookAt(0, 0, 0);
+    // camera.up.set(0, 1, 0);
+
     camera.matrixAutoUpdate = false;
 
     // camera.position.set(0, 0, 5);
@@ -104,6 +109,16 @@ function scene_init() {
     console.log(camera.matrix);
     console.log(camera.position);
     
+    // let a = new THREE.Matrix4().makeTranslation(0, 0, 5);
+    // let b = new THREE.Matrix4().lookAt(
+    //     new THREE.Vector3(5, 5, 5),
+    //     new THREE.Vector3(0, 0, 0),
+    //     new THREE.Vector3(0, 1, 0)
+    // );
+    
+    // camera.matrixWorldNeedsUpdate= true;
+    // camera.matrix.multiplyMatrices(a);
+    // console.log(camera.position);
 
     //controls.target.set( 0, 0, 0 );
 }/// 전체적인 장면의 세부 설정 함수
@@ -156,23 +171,35 @@ function mouseUpHandler(e) {
 
 function mouseMoveHandler(e) {
 
+    // cameraSpace.matrixAutoUpdate = false;
+    // cameraSpace.matrixWorldNeedsUpdate = true;
+
     if(rightButtonClick){
-        cameraSpace.translateX( -10 * (e.offsetX - rightButtonMousePosX)/ render_w );
-        cameraSpace.translateY( 10 * (e.offsetY - rightButtonMousePosY)/ render_h );
-       
+       // cameraSpace.translateX( -10 * (e.offsetX - rightButtonMousePosX)/ render_w );
+        // cameraSpace.translateY( 10 * (e.offsetY - rightButtonMousePosY)/ render_h );
+        cameraSpace.matrixAutoUpdate = false;
+        cameraSpace.matrixWorldNeedsUpdate = true;
+        
+        let a = new THREE.Matrix4().makeTranslation(-10 * (e.offsetX - rightButtonMousePosX)/ render_w, 10*(e.offsetY - rightButtonMousePosY)/ render_h, 0);
+
+        cameraSpace.matrix.multiply(a);
+        console.log(camera.matrix);
     }
     else if(leftButtonClick){
+        // cameraSpace.matrixAutoUpdate = false;
+        // cameraSpace.matrixWorldNeedsUpdate = true;
         angleX = -Math.PI*2*2*(e.offsetX - rightButtonMousePosX)/render_w;
         angleY = -Math.PI*2*2*(e.offsetY - rightButtonMousePosY)/render_h;
-        // angleYSum += angleY;
-        // if((angleYSum > Math.PI/2 )|| (angleYSum< -Math.PI/2)  ){
-        //     angleY = 0;
-        // }
+
+        // let a = new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),angleY));
+        // let b = new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),angleX));
+        // a.multiply(b);
+        // cameraSpace.matrix.multiply(a);
         
         cameraSpace.quaternion.multiplyQuaternions(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),angleY),cameraSpace.quaternion);
         cameraSpace.quaternion.multiplyQuaternions(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),angleX),cameraSpace.quaternion);
-        
-        
+        // cameraSpace.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),angleY));
+        // cameraSpace.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),angleX));
     }
     rightButtonMousePosX = e.offsetX;
     rightButtonMousePosY = e.offsetY;
@@ -180,6 +207,7 @@ function mouseMoveHandler(e) {
 
 
 function mouseWheel(e) {
+    
     camera.matrixAutoUpdate = false;
     camera.matrixWorldNeedsUpdate = true;
     let cam_view = new THREE.Vector3(0, 0, -1); // in the camera space, -z is the viewing direction
@@ -207,9 +235,6 @@ function mouseWheel(e) {
     // camera.matrix = cam_mat_prev
     camera.matrix.copy(cam_mat_prev);
 
-    //console.log(camera.matrix);
-
-    
     // if(e.wheelDelta > 0){
     //     const m = new THREE.Matrix4();
     //     m.set( 0.95, 0, 0, 0,
