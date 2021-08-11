@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>THREE.JS WORLD</title>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r73/three.js"></script>
+    <style>
+        body {
+            /* set margin to 0 and overflow to hidden, to
+             use the complete page */
+            margin: 0;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Div which will hold the Output -->
+<div id="WebGL-output">
+</div>
+
+<!-- Javascript code that runs our Three.js examples -->
+<script>
+function init() {
+  var scene = new THREE.Scene()
+
+  // Create a perspective camera
+  var viewAngle = 45
+  var width = window.innerWidth
+  var height = window.innerHeight
+  var ratio = width / height
+  var near = 0.1
+  var far = 3000
+  var camera = new THREE.PerspectiveCamera(viewAngle,ratio,near,far)
+
+  // create a render and set the size
+  var renderer = new THREE.WebGLRenderer()
+  renderer.setClearColor(new THREE.Color(0xEEEEEE))
+  renderer.setSize(width, height)
+
+  // create the ground plane
+  var planeGeometry = new THREE.PlaneGeometry(1000, 1000)
+  var yellowMaterial = new THREE.MeshBasicMaterial({
+    color: 0xffff00
+  , opacity: 0.25
+  , transparent: true
+  })
+  var cyanMaterial = new THREE.MeshBasicMaterial({
+    color: 0x00ffff
+  , opacity: 0.5
+  , transparent: true
+  })
+  var magentaMaterial = new THREE.MeshBasicMaterial({
+    color: 0xff00ff
+  , opacity: 0.5
+  , transparent: true
+  })
+  var xyPlane = new THREE.Mesh(planeGeometry, yellowMaterial)
+  scene.add(xyPlane)
+
+  var yzPlane = new THREE.Mesh(planeGeometry, cyanMaterial)
+  yzPlane.rotation.y = 0.5 * Math.PI
+  scene.add(yzPlane)
+
+  var xzPlane = new THREE.Mesh(planeGeometry, magentaMaterial)
+  xzPlane.rotation.x = -0.5 * Math.PI
+  scene.add(xzPlane)
+
+  // position and point the camera to the center of the scene
+  camera.position.x = 500
+  camera.position.y = 700
+  camera.position.z = 1300
+  camera.lookAt(scene.position)
+
+  // add the output of the renderer to the html element
+  document.getElementById("WebGL-output").appendChild(renderer.domElement)
+
+  ;(function createObjectManipulator(scene, camera){
+     // <FOR TESTING ONLY>
+    var dragPlane
+    var dragCube
+    var cameraPosition
+    var zAxis
+
+    ;(function testing() {     
+      scene.add(camera)
+
+      // DRAG PLANE
+      var side = 2000
+      var segments = 20
+      var planeGeometry = new THREE.PlaneBufferGeometry(side, side, segments, segments)
+      var planeMaterial = new THREE.MeshBasicMaterial({
+        color: 0x000000
+      , wireframe: false
+      , transparent: true
+      , opacity: 0.5})
+      dragPlane = new THREE.Mesh(planeGeometry, planeMaterial)
+
+      var angle = camera.fov * Math.PI / 360
+      var distance = side / 2 / Math.tan(angle)
+      dragPlane.translateZ(-distance)
+      dragPlane.scale.x = camera.aspect
+      camera.add(dragPlane)
+
+      // CUBE TO DRAG
+      var cubeGeometry = new THREE.BoxGeometry(40, 40, 40)
+      var cubeMaterial = new THREE.MeshBasicMaterial({
+        color: 0xffffff
+      , wireframe: true})
+      dragCube = new THREE.Mesh(cubeGeometry, cubeMaterial)
+
+      // CAMERA
+      cameraPosition = new THREE.Vector3()
+      camera.updateMatrixWorld()
+      cameraPosition.setFromMatrixPosition( camera.matrixWorld )
+
+      zAxis = camera.getWorldDirection().negate()
+    })()
+    // </FOR TESTING ONLY>
+
+    var viewport = window
+    var viewWidth = viewport.innerWidth
+    var viewHeight = viewport.innerHeight
+
+    ;(function cameraProjectDemo(){
+      viewport.addEventListener( 'mousedown', startDrag, false )
+
+      var target
+        , viewClickPoint
+
+      function startDrag(event) { 
+        window.addEventListener( 'mousemove', drag, false )
+        window.addEventListener( 'mouseup', stopDrag, false )
+ 
+        var viewPoint = getViewPoint(event)
+        target = getModelUnderMouse(viewPoint)
+
+        if (!target) {
+          stopDrag()
+          return
+        }
+
+        viewClickPoint = target.point.clone().project(camera)
+
+        ;(function testing(){ 
+          dragCube.position.copy(target.point)
+          scene.add(dragCube)
+          var distanceToCube = target.point.clone()
+                                           .sub(cameraPosition)
+                                           .dot(zAxis)
+          dragPlane.position.z = distanceToCube
+        })()
+      }
+
+      function drag(event) {
+        var viewPoint = getViewPoint(event, viewClickPoint.z)
+        var worldPoint = viewPoint.clone().unproject(camera)
+        dragCube.position.copy(worldPoint)
+      }
+
+      function stopDrag(event) {
+        window.removeEventListener( 'mousemove', drag, false )
+        window.removeEventListener( 'mouseup', stopDrag, false )      
+      }
+
+      function getViewPoint(event, z) {
+        var viewPoint = new THREE.Vector3()
+
+        viewPoint.x = (event.clientX / viewWidth) * 2 - 1
+        viewPoint.y = 1 - (event.clientY / viewHeight) * 2
+        viewPoint.z = z || 0
+ 
+        return viewPoint
+      }
+
+      function getModelUnderMouse(viewPoint) {
+        var raycaster = new THREE.Raycaster()    
+
+        raycaster.setFromCamera( viewPoint, camera )
+        intersects = raycaster.intersectObjects(scene.children)
+        
+        return intersects[0] // may be undefined
+      }
+    })()
+  })(scene, camera)
+
+  ;(function render() {
+    renderer.render(scene, camera)
+    requestAnimationFrame(render)
+  })()
+}
+
+window.onload = init
+</script>
+</body>
+</html>
