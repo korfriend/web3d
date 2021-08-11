@@ -161,15 +161,15 @@ function mouseMoveHandler(e) {
 
         // console.log(pos);
 
-        angleX = Math.PI*2*2*(e.offsetX - previousMousePosition.x)/render_w;
-        angleY = Math.PI*2*2*(e.offsetY - previousMousePosition.y)/render_h;
-        console.log(angleX,", ",angleY);
-        const myAxis = new THREE.Vector3(0,0,1);
-        axis = new Vector3().cross(up, normal);
+        let angle = Math.PI*2*2*(e.offsetX - previousMousePosition.x)/render_w;
+        //angleY = Math.PI*2*2*(e.offsetY - previousMousePosition.y)/render_h;
+        //console.log(angleX,", ",angleY);
+        const myAxis = new THREE.Vector3(e.offsetY - previousMousePosition.y,-(e.offsetX - previousMousePosition.x),0);
+        //axis = new Vector3().cross(up, normal);
         mat_viewingTrans.makeRotationAxis(myAxis.normalize(),angle);
         //mat_viewingTrans.makeRotationAxis(yAxis,angleY);
-        const quat = new Quaternion().setFromAxisAngle(axis, radians);
-        newVector.applyQuaternion(quat);
+        //const quat = new THREE.Quaternion().setFromAxisAngle(myAxis, angleX);
+        //mat_viewingTrans.applyQuaternion(quat);
 
 
     }
