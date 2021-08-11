@@ -1,10 +1,6 @@
 import * as THREE from "/js/three.module.js";
-import {
-    OrbitControls
-} from "/js/OrbitControls.js";
-import {
-    GUI
-} from '/js/dat.gui.module.js';
+import {OrbitControls} from "/js/OrbitControls.js";
+import {GUI} from '/js/dat.gui.module.js';
 
 // https://threejsfundamentals.org/threejs/lessons/kr/threejs-fundamentals.html
 const render_w = window.innerWidth;
@@ -43,9 +39,6 @@ var previousMousePosition = {
     y: 0
 };
 
-let angleX = 0;
-let angleY = 0;
-
 dom_init();
 scene_init();
 //SetOrbitControls(true);
@@ -77,6 +70,7 @@ function scene_init() {
 
     scene.add(cube);
     scene.add(new THREE.AxesHelper(2));
+    
 
     light.position.set(-2, 2, 2);
     light.target = cube;
@@ -166,7 +160,7 @@ function mouseMoveHandler(e) {
     else if (rightdown == true) {
         mat_viewingTrans.makeTranslation(-(e.offsetX-previousMousePosition.x)/render_w*5, 
         (e.offsetY-previousMousePosition.y)/render_h*5,0);
-        console.log(previousMousePosition);
+        //console.log(previousMousePosition);
     }
 
     let cam_mat_prev = camera.matrix.clone();
