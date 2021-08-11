@@ -160,29 +160,27 @@ function mouseDownHandler(e) {
 }
 
 function mouseMoveHandler(e) {
-    //deltaMove is Screen Point Vector 
+    //deltaMove is Screen Point (x,y) 
     deltaMove = {
         x: e.offsetX-previousMousePosition.x,
         y: e.offsetY-previousMousePosition.y
     };
 
     if(isRotating) {
-        //vec is the position of screen point in 3D space in world coordinates 
-        let vec = new THREE.Vector3(deltaMove.x, deltaMove.y, 0).unproject(camera);
+        //worldPoint is the position of screen point in 3D space in world coordinates 
+        let worldPoint = new THREE.Vector3(deltaMove.x, deltaMove.y, 0).unproject(camera);
         console.log(deltaMove);
-        console.log(vec);
-        
-        //vec is the normalized ray direction from the camera
-        //vec.sub(camera.position).normalize();
+        console.log(worldPoint);
 
-        //distance is the distance/sclae by which to travel along the ray, until reaching a point on the ray which lies in plane z = targetZ 
-        //let distance = ()
+        // ray / direction of click on world coordinates 
+        // worldPoint is the normalized ray direction from the camera 
+        worldPoint.sub(camera.position).normalize();
 
         let mat_rotation = new THREE.Matrix4();
         let mat_rotation_x = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(-1,0,0), deltaMove.y * 0.1 * Math.PI/180);
         let mat_rotation_y = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0,-1,0), deltaMove.x * 0.1 * Math.PI/180);
-        let mat_rotation_z = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0,0,1),  vec.z * 0.1 * Math.PI/180); 
-        mat_rotation.multiply(mat_rotation_x).multiply(mat_rotation_y).multiply(mat_rotation_z)
+        //let mat_rotation_z = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0,0,1),  vec.z * 0.1 * Math.PI/180); 
+        mat_rotation.multiply(mat_rotation_x).multiply(mat_rotation_y)//.multiply(mat_rotation_z)
 
         camera.matrixWorldNeedsUpdate = true;
         camera.applyMatrix4(mat_rotation);
@@ -297,3 +295,19 @@ function screenToWolrd(screenPos){
     worldPos.unproject(camera);
     return worldPos;
 }
+
+/*
+마우스 좌표계를 받으면 (x,y)
+world coordinate space상의 좌표계로 변황해줌 (x,y,z)
+function createVector(x, y, z, camera, width, height) {
+        var p = new THREE.Vector3(x, y, z);
+        var vector = p.project(camera);
+
+        vector.x = (vector.x + 1) / 2 * width;
+        vector.y = -(vector.y - 1) / 2 * height;
+
+        return vector;
+    }
+
+
+*/
