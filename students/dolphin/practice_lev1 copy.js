@@ -176,22 +176,18 @@ function mouseMoveHandler(e) {
         // worldPoint is the normalized ray direction from the camera 
         //worldPoint.sub(camera.position).normalize();
 
-        //let myAxis = new THREE.Vector3(worldPoint.x, worldPoint.y, worldPoint.z);
-        let mat_rotation_x = new THREE.Matrix4().makeRotationY(deltaMove.x * -0.01);
-        let mat_rotation_y = new THREE.Matrix4().makeRotationX(deltaMove.y * -0.01);
-        //mat_rotation.multiply(mat_rotation_x);
-        //mat_rotation.multiply(mat_rotation_y);
+        let mat_rotation_x = new THREE.Matrix4().makeRotationY(10*delta.y);
+        let mat_rotation_y = new THREE.Matrix4().makeRotationX(10*delta.x);
         mat_rotation_x.multiply(mat_rotation_y);
+        //mat_rotation.multiply(mat_rotation_x).multiply(mat_rotation_y)//.multiply(mat_rotation_z)
 
         camera.matrixWorldNeedsUpdate = true;
-        camera.applyMatrix4(mat_rotation_x);
+        camera.matrix.multiply(mat_rotation_x);
 
         //pos is the postion of world position in 2d Screen space 
-        //let pos = camera.position.clone();  //what??? object?? 
-        //pos.project(camera);
-        //console.log(pos);
-
-
+        let pos = camera.position.clone();  //what??? object?? 
+        pos.project(camera);
+        console.log(pos);
 
         /*
         var deltaRotaionQuaternion = new THREE.Quaternion().setFromEuler(new THREE.Euler(
