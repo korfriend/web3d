@@ -140,6 +140,10 @@ let leftButtonClick = false;
 let rightButtonMousePosX = 0;
 let rightButtonMousePosY = 0;
 
+let mouse3D = new THREE.Vector3();
+let prevMouse3D = new THREE.Vector3();
+let worldMouse3D = new THREE.Vector3();
+
 let angleX = 0;
 let angleY = 0;
 
@@ -148,6 +152,7 @@ renderer.setAnimationLoop( ()=>{
     renderer.render( scene, camera );
 } );
 /**/
+ 
 
 function mouseDownHandler(e) {
     if (e.which == 3) {
@@ -158,32 +163,35 @@ function mouseDownHandler(e) {
     }
 }
 
+
 function mouseUpHandler(e) {
     rightButtonClick = false;
     leftButtonClick = false;
 }
 
-const raycaster = new THREE.Raycaster();
-const p = new THREE.Plane(new THREE.Vector3(0,0,1),0);
 
 function mouseMoveHandler(e) {
 
     cameraSpace.matrixAutoUpdate = false;
     cameraSpace.matrixWorldNeedsUpdate = true;
 
-    let mouse3D = new THREE.Vector2( ( e.clientX /render_w ) * 2 - 1,
-                                    -( e.clientY / render_h ) * 2 + 1);
-    let transformedPos = new THREE.Vector3();
-                                    
-    raycaster.setFromCamera(mouse3D, camera);
-    raycaster.ray.intersectPlane(p,transformedPos);
+    let distance = new THREE.Vector3();
+    camera.getWorldDirection(distance);
+    let d = distance.distanceTo(new THREE.Vector3());
+    let scale = d / near;
 
+    mouse3D = new THREE.Vector3( ( e.clientX /render_w ) * 2 - 1,
+        -( e.clientY / render_h ) * 2 + 1,
+        0);
+    let temp = mouse3D.clone();
+    worldMouse3D = mouse3D.unproject(camera).sub(prevMouse3D.unproject(camera)).clone();
+    
     if(rightButtonClick){
+        console.log(d)
+        let a = new THREE.Matrix4().makeTranslation(- (scale*worldMouse3D.x), -(scale*worldMouse3D.y), -(scale*worldMouse3D.z));
         
-        let a = new THREE.Matrix4().makeTranslation(-transformedPos.x, -transformedPos.y, transformedPos.z);
-
-        cameraSpace.matrix.multiply(a);
-        console.log(camera.matrix);
+        //let a = new THREE.Matrix4().makeTranslation(-10 * (e.offsetX - rightButtonMousePosX)/ render_w, 10*(e.offsetY - rightButtonMousePosY)/ render_h, 0);
+        cameraSpace.matrix.multiply(a);    
     }
     else if(leftButtonClick){
         
@@ -197,6 +205,8 @@ function mouseMoveHandler(e) {
     }
     rightButtonMousePosX = e.clientX;
     rightButtonMousePosY = e.clientY;
+    prevMouse3D = temp.clone();
+
 }
 
 
