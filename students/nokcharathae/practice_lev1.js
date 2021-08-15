@@ -16,7 +16,7 @@ const renderer = new THREE.WebGLRenderer();
 //const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(render_w, render_h);
 
-//const controls = new OrbitControls(camera, renderer.domElement);
+const controls = new OrbitControls(camera, renderer.domElement);
 
 const geomery = new THREE.BoxGeometry(1, 1, 1);
 const texture = new THREE.TextureLoader().load( './teximg.jpg' );
@@ -93,18 +93,18 @@ function scene_init() {
     camera.lookAt(0, 0, 0);
     camera.up.set(0, 1, 0);
 
-    //controls.target.set( 0, 0, 0 );
+    controls.target.set( 0, 0, 0 );
 }
 
-// function SetOrbitControls(enable_orbitctr){
-//     controls.enabled = enable_orbitctr;
-//     controls.enablePan = true;
-//     controls.enableZoom = true;
-//     controls.enableDamping = true;
-//     controls.dampingFactor = 0.05;
-//     controls.update();
-// }
-/*
+ function SetOrbitControls(enable_orbitctr){
+     controls.enabled = enable_orbitctr;
+     controls.enablePan = true;
+     controls.enableZoom = true;
+     controls.enableDamping = true;
+     controls.dampingFactor = 0.05;
+     controls.update();
+ }
+
 render_animation();
 function render_animation(){
     window.requestAnimationFrame(render_animation);
@@ -115,66 +115,66 @@ function render_animation(){
 // I strongly recommend you guys to read "Lambda function/code" articles
 
 renderer.setAnimationLoop( ()=>{
-    //controls.update();
+    controls.update();
     renderer.render( scene, camera );
     
 } );
 /**/
 
 function mouseDownHandler(e) {
-    previousMousePosition = {
-        x: e.offsetX,
-        y: e.offsetY
-    };
-    if (e.which == 3) {
-        rightdown = true;        
-    }
-    else if ( e.which == 1){
-        leftdown = true;
-    }
+    // previousMousePosition = {
+    //     x: e.offsetX,
+    //     y: e.offsetY
+    // };
+    // if (e.which == 3) {
+    //     rightdown = true;        
+    // }
+    // else if ( e.which == 1){
+    //     leftdown = true;
+    // }
 }
 
 function mouseMoveHandler(e) {
     
-    if(leftdown==true) {
-        deltaMove = {
-            x: e.offsetX-previousMousePosition.x,
-            y: e.offsetY-previousMousePosition.y
-        };
+    // if(leftdown==true) {
+    //     deltaMove = {
+    //         x: e.offsetX-previousMousePosition.x,
+    //         y: e.offsetY-previousMousePosition.y
+    //     };
         
-    var deltaRotationQuaternion = new THREE.Quaternion()
-            .setFromEuler(new THREE.Euler(
-                deltaMove.y* 0.01* (Math.PI / 180),
-                deltaMove.x * 0.01* (Math.PI / 180),
-                0,
-                'XYZ'
-            ));
-    console.log(deltaRotationQuaternion)
-    pivotPoint.quaternion.multiplyQuaternions(deltaRotationQuaternion, pivotPoint.quaternion);  
-    }
+    // var deltaRotationQuaternion = new THREE.Quaternion()
+    //         .setFromEuler(new THREE.Euler(
+    //             deltaMove.y* 0.01* (Math.PI / 180),
+    //             deltaMove.x * 0.01* (Math.PI / 180),
+    //             0,
+    //             'XYZ'
+    //         ));
+    // console.log(deltaRotationQuaternion)
+    // pivotPoint.quaternion.multiplyQuaternions(deltaRotationQuaternion, pivotPoint.quaternion);  
+    // }
     
 
-    else if(rightdown==true){
-        camera.position.x += 0.1*(e.offsetX - deltaMove.x)/ render_w ;
-        camera.position.y += 0.1*(e.offsetY - deltaMove.y)/ render_w ;
-        camera.updateProjectionMatrix();
-    }
-    previousMousePosition = {
-        x: e.offsetX,
-        y: e.offsetY
-    };
+    // else if(rightdown==true){
+    //     camera.position.x += 0.1*(e.offsetX - deltaMove.x)/ render_w ;
+    //     camera.position.y += 0.1*(e.offsetY - deltaMove.y)/ render_w ;
+    //     camera.updateProjectionMatrix();
+    // }
+    // previousMousePosition = {
+    //     x: e.offsetX,
+    //     y: e.offsetY
+    // };
     
 }
 
 function mouseUpHandler(e){
-    leftdown = false;
-    rightdown =false;
+    // leftdown = false;
+    // rightdown =false;
 }
 
 
 function mouseWheel(e) {
-    if(e.wheelDelta>0)
-        camera.position.z -=0.1;
-    else if(e.wheelDelta<0)
-        camera.position.z +=0.1;    
+    // if(e.wheelDelta>0)
+    //     camera.position.z -=0.1;
+    // else if(e.wheelDelta<0)
+    //     camera.position.z +=0.1;    
 }

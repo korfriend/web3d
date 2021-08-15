@@ -1,10 +1,6 @@
 import * as THREE from "/js/three.module.js";
-import {
-    OrbitControls
-} from "/js/OrbitControls.js";
-import {
-    GUI
-} from '/js/dat.gui.module.js';
+import {OrbitControls} from "/js/OrbitControls.js";
+import {GUI} from '/js/dat.gui.module.js';
 
 // https://threejsfundamentals.org/threejs/lessons/kr/threejs-fundamentals.html
 const render_w = window.innerWidth;
@@ -43,9 +39,6 @@ var previousMousePosition = {
     y: 0
 };
 
-let angleX = 0;
-let angleY = 0;
-
 dom_init();
 scene_init();
 //SetOrbitControls(true);
@@ -77,6 +70,7 @@ function scene_init() {
 
     scene.add(cube);
     scene.add(new THREE.AxesHelper(2));
+    
 
     light.position.set(-2, 2, 2);
     light.target = cube;
@@ -148,36 +142,25 @@ function mouseMoveHandler(e) {
     if (leftdown == true) {
         
 
-        // let pos = new THREE.Vector3();
-        // pos = pos.setFromMatrixPosition(camera.matrix);
-        // pos.project(camera);
+         let pos = new THREE.Vector3();
+         //pos = pos.setFromMatrixPosition(camera.matrix);
+         //pos.project(camera);
+         pos.x = (e.offsetX - previousMousePosition.x)/render_w;
+         pos.y = (e.offsetY - previousMousePosition.y)/render_h;
+         pos.z = 0;
 
-        // let widthHalf = render_w / 2;
-        // let heightHalf = render_h / 2;
+        console.log(pos);
 
-        // pos.x = (pos.x * widthHalf) + widthHalf;
-        // pos.y = - (pos.y * heightHalf) + heightHalf;
-        // pos.z = 0;
-
-        // console.log(pos);
-
-        let angle = Math.PI*2*2*(e.offsetX - previousMousePosition.x)/render_w;
-        //angleY = Math.PI*2*2*(e.offsetY - previousMousePosition.y)/render_h;
-        //console.log(angleX,", ",angleY);
-        const myAxis = new THREE.Vector3(e.offsetY - previousMousePosition.y,-(e.offsetX - previousMousePosition.x),0);
+        const myAxis = new THREE.Vector3(-(e.offsetY - previousMousePosition.y),-(e.offsetX - previousMousePosition.x),0);
         //axis = new Vector3().cross(up, normal);
-        mat_viewingTrans.makeRotationAxis(myAxis.normalize(),angle);
-        //mat_viewingTrans.makeRotationAxis(yAxis,angleY);
-        //const quat = new THREE.Quaternion().setFromAxisAngle(myAxis, angleX);
-        //mat_viewingTrans.applyQuaternion(quat);
-
-
+        mat_viewingTrans.makeRotationAxis(myAxis.normalize(),  Math.PI*Math.sqrt(pos.x*pos.x+pos.y*pos.y));
+        
     }
 
     else if (rightdown == true) {
         mat_viewingTrans.makeTranslation(-(e.offsetX-previousMousePosition.x)/render_w*5, 
         (e.offsetY-previousMousePosition.y)/render_h*5,0);
-        console.log(previousMousePosition);
+        //console.log(previousMousePosition);
     }
 
     let cam_mat_prev = camera.matrix.clone();
