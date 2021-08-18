@@ -100,7 +100,6 @@ function scene_init() {
     
     camera.matrixWorldNeedsUpdate = true;
     camera.matrix.copy(a);
-    console.log(camera.position);
     
     // let a = new THREE.Matrix4().makeTranslation(0, 0, 5);
     // let b = new THREE.Matrix4().lookAt(
@@ -165,29 +164,44 @@ function mouseUpHandler(e) {
     leftButtonClick = false;
 }
 
+let cameraLookAt = new THREE.Vector3(0,0,0);
 
 function mouseMoveHandler(e) {
 
     camera.matrixAutoUpdate = false;
     camera.matrixWorldNeedsUpdate = true;
 
-    let distance = new THREE.Vector3();
-    camera.getWorldDirection(distance);
-    let d = distance.distanceTo(new THREE.Vector3());
-    let scale = d / near;
+    let cameraPos = new THREE.Vector3(camera.matrixWorld.elements[12],camera.matrixWorld.elements[13],camera.matrixWorld.elements[14]);
+    let d = cameraPos.distanceTo(cameraLookAt);
+    let scale = d /(2 * near); 
 
     mouse3D = new THREE.Vector3( ( e.clientX /render_w ) * 2 - 1,
         -( e.clientY / render_h ) * 2 + 1,
         0);
-    let temp = mouse3D.clone();
-    worldMouse3D = mouse3D.unproject(camera).sub(prevMouse3D.unproject(camera)).clone();
+
+    let tempMouse3D = mouse3D.clone();
+
+    let unMouse3D = mouse3D.unproject(camera).clone();
+    let unPrevMouse3D = prevMouse3D.unproject(camera).clone();   
+
     
     if(rightButtonClick){
-        console.log(d)
-        let a = new THREE.Matrix4().makeTranslation(- (scale*worldMouse3D.x), -(scale*worldMouse3D.y), -(scale*worldMouse3D.z));
+        camera.worldToLocal(unMouse3D);
+        camera.worldToLocal(unPrevMouse3D);
+        worldMouse3D = unMouse3D.sub(unPrevMouse3D);
+        worldMouse3D.multiplyScalar(scale);
+        cameraLookAt.add(worldMouse3D);
         
-        //let a = new THREE.Matrix4().makeTranslation(-10 * (e.offsetX - rightButtonMousePosX)/ render_w, 10*(e.offsetY - rightButtonMousePosY)/ render_h, 0);
-        camera.matrix.multiply(a);    
+        let m = new THREE.Matrix4();
+
+        m.set( 1, 0, 0, - (worldMouse3D.x),
+               0, 1, 0,  -(worldMouse3D.y),
+               0, 0, 1, -(worldMouse3D.z),
+               0, 0, 0, 1 );
+
+        let cam_mat_prev = camera.matrix.clone();
+        cam_mat_prev.multiply(m); // 얘는 왜 또 그냥 multiply인거지?
+        camera.matrix.copy(cam_mat_prev);     
     }
     else if(leftButtonClick){
         
@@ -197,11 +211,42 @@ function mouseMoveHandler(e) {
         let a = new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),angleY));
         let b = new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),angleX));
         a.multiply(b);
-        camera.matrix.multiply(a);
+        camera.matrix.premultiply(a);
+        console.log(camera.matrix);
+
+        // let cam_mat_prev = camera.matrix.clone();
+        // cam_mat_prev.premultiply(a);
+        // camera.matrix.copy(cam_mat_prev); /// 이렇게 하면 왜 해결되는거지? 그냥 multiply랑 뭐가 다른데? 
+
+        
+        
+        // unMouse3D.sub(cameraLookAt);
+        // unPrevMouse3D.sub(cameraLookAt);
+
+        // let forAngleA = unPrevMouse3D;
+        // let forAngleB = unMouse3D;
+
+        // let d1 = forAngleA.length();
+        // let d2 = forAngleB.length();
+        
+        // let dotProduct = forAngleA.dot(forAngleB);
+
+        // let theta = (180/Math.PI) * Math.acos(dotProduct/(d1*d2));
+        // console.log(theta);
+        
+        // // camera.worldToLocal(unMouse3D);
+        // // camera.worldToLocal(unPrevMouse3D);
+        // unPrevMouse3D.cross(unMouse3D);
+        // camera.worldToLocal(unPrevMouse3D);
+        
+        // let a = new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(unPrevMouse3D,theta));
+        // camera.matrix.multiply(a);
+
+
     }
     rightButtonMousePosX = e.clientX;
     rightButtonMousePosY = e.clientY;
-    prevMouse3D = temp;
+    prevMouse3D = tempMouse3D.clone();
     
 }
 
@@ -234,5 +279,6 @@ function mouseWheel(e) {
     cam_mat_prev.premultiply(mat_viewingTrans);
     // camera.matrix = cam_mat_prev
     camera.matrix.copy(cam_mat_prev);
+
 }
 
