@@ -170,43 +170,84 @@ function mouseUpHandler(e) {
 }
 
 
+
 function mouseMoveHandler(e) {
 
-    cameraSpace.matrixAutoUpdate = false;
+    camera.matrixAutoUpdate = false;
+    camera.matrixWorldNeedsUpdate = true;
     cameraSpace.matrixWorldNeedsUpdate = true;
+    cameraSpace.matrixAutoUpdate = false;
 
-    let distance = new THREE.Vector3();
-    camera.getWorldDirection(distance);
-    let d = distance.distanceTo(new THREE.Vector3());
-    let scale = d / near;
+    let cameraLookAt = cameraSpace.localToWorld(new THREE.Vector3(0,0,0));
+
+    let cameraPos = new THREE.Vector3(camera.matrixWorld.elements[12],camera.matrixWorld.elements[13],camera.matrixWorld.elements[14]);
+    let d = cameraPos.distanceTo(cameraLookAt);
+    let scale = d /(2*near); 
 
     mouse3D = new THREE.Vector3( ( e.clientX /render_w ) * 2 - 1,
         -( e.clientY / render_h ) * 2 + 1,
         0);
-    let temp = mouse3D.clone();
-    worldMouse3D = mouse3D.unproject(camera).sub(prevMouse3D.unproject(camera)).clone();
+
+    let tempMouse3D = mouse3D.clone();
+
+    let unMouse3D = mouse3D.unproject(camera).clone();
+    let unPrevMouse3D = prevMouse3D.unproject(camera).clone();   
+
     
     if(rightButtonClick){
-        console.log(d)
-        let a = new THREE.Matrix4().makeTranslation(- (scale*worldMouse3D.x), -(scale*worldMouse3D.y), -(scale*worldMouse3D.z));
+
+        camera.worldToLocal(unMouse3D);
+        camera.worldToLocal(unPrevMouse3D);
+        worldMouse3D = unMouse3D.sub(unPrevMouse3D);
+        worldMouse3D.multiplyScalar(scale);
+        cameraLookAt.add(worldMouse3D);
         
-        //let a = new THREE.Matrix4().makeTranslation(-10 * (e.offsetX - rightButtonMousePosX)/ render_w, 10*(e.offsetY - rightButtonMousePosY)/ render_h, 0);
-        cameraSpace.matrix.multiply(a);    
+        let m = new THREE.Matrix4();
+
+        // m.set( 1, 0, 0, - (worldMouse3D.x),
+        //        0, 1, 0,  -(worldMouse3D.y),
+        //        0, 0, 1, -(worldMouse3D.z),
+        //        0, 0, 0, 1 );
+
+        m.makeTranslation(- (worldMouse3D.x),-(worldMouse3D.y),-(worldMouse3D.z),);
+
+        let cam_mat_prev = cameraSpace.matrix.clone();
+        cam_mat_prev.multiply(m); // 얘는 왜 또 그냥 multiply인거지?
+        cameraSpace.matrix.copy(cam_mat_prev); 
+        console.log(camera.position , camera.matrix);
     }
     else if(leftButtonClick){
         
-        angleX = -Math.PI*2*2*(e.clientX - rightButtonMousePosX)/render_w;
-        angleY = -(Math.PI*2*2*(e.clientY - rightButtonMousePosY)/render_h)*(render_h/render_w);
+        unMouse3D.sub(cameraLookAt);
+        unPrevMouse3D.sub(cameraLookAt);
+
+        let forAngleA = unPrevMouse3D.clone();
+        let forAngleB = unMouse3D.clone();
+
+        let d1 = forAngleA.length();
+        let d2 = forAngleB.length();
         
-        let a = new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),angleY));
-        let b = new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),angleX));
-        a.multiply(b);
-        cameraSpace.matrix.multiply(a);
+        let dotProduct = forAngleA.dot(forAngleB);
+
+        let theta = (180/Math.PI) * Math.acos(dotProduct/(d1*d2));
+        
+        // camera.worldToLocal(unMouse3D);
+        // camera.worldToLocal(unPrevMouse3D);
+        unPrevMouse3D.cross(unMouse3D);
+        cameraSpace.worldToLocal(unPrevMouse3D);
+        
+        let a = new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(unPrevMouse3D,-10*theta));
+        let cam_mat_prev = cameraSpace.matrix.clone();
+        cam_mat_prev.multiply(a);
+        cameraSpace.matrix.copy(cam_mat_prev); /// 이렇게 하면 왜 해결되는거지? 그냥 multiply랑 뭐가 다른데?   camera.matrix.premultiply(a); 그냥 이렇게 해도됨
+        ///premultiply multiply 차이와, 굳이 직접 변환하지 않고, copy해주는 이유는??
+
+
+
     }
     rightButtonMousePosX = e.clientX;
     rightButtonMousePosY = e.clientY;
-    prevMouse3D = temp.clone();
-
+    prevMouse3D = tempMouse3D.clone();
 }
 
 
@@ -215,7 +256,7 @@ function mouseWheel(e) {
     camera.matrixAutoUpdate = false;
     camera.matrixWorldNeedsUpdate = true;
     let cam_view = new THREE.Vector3(0, 0, -1); // in the camera space, -z is the viewing direction
-    cam_view.transformDirection(camera.matrix); // refer to THREE.js doc
+    cam_view.transformDirection(camera.matrix); // refer to THREE.js doc   cma_view는 원점을 바라보는 방향. 카메라 메트릭스의 위치 많큼 변환 시킴. 
     //console.log(cam_view);
 
     let view_move = cam_view.clone();
@@ -238,5 +279,8 @@ function mouseWheel(e) {
     cam_mat_prev.premultiply(mat_viewingTrans);
     // camera.matrix = cam_mat_prev
     camera.matrix.copy(cam_mat_prev);
+
+    // camera.matrix.premultiply(mat_viewingTrans); 이렇게 하지 않을 이유가 있는가? 
+    // 또한 해당에서는 multiply와 차이가 없는데 물리적으로 어떤 현상이 벌어지고 있는지 잘 모르겠다.
 }
 
