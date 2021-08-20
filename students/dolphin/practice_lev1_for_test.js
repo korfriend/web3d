@@ -72,8 +72,7 @@ function dom_init() {
 function scene_init() {
     scene.add(cube);
     scene.add(new THREE.AxesHelper(2));
-    //scene.add(camera);
-    // camera는 굳이 scene에 포함하지 않아도 된다 
+    //scene.add(camera); 
 
     light.position.set(-2, 2, 2);
     light.target = cube;

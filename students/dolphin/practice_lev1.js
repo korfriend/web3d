@@ -73,7 +73,6 @@ function scene_init() {
     scene.add(cube);
     scene.add(new THREE.AxesHelper(2));
     //scene.add(camera);
-    // camera는 굳이 scene에 포함하지 않아도 된다 
 
     light.position.set(-2, 2, 2);
     light.target = cube;
@@ -140,11 +139,11 @@ var isRotating, isPanning;
 var previousMousePosition = {
     x: 0,
     y: 0
-}
+};
 var deltaMove = {
     x: 0,
     y: 0
-}
+};
 
 function mouseDownHandler(e) {
     // Gecko (Firefox), WebKit (Safari/Chrome) & Opera -> which, IE, Opera -> button
@@ -157,74 +156,56 @@ function mouseDownHandler(e) {
         y: e.offsetY
     };
     //console.log("isRotating : " + isRotating + ", isPanning : " + isPanning)
+    console.clear();
 }
 
+//어떤 점을 기준으로 돌아갈 것인가? -> default 원점 
+//camera rotation axis in world space 
+//
 function mouseMoveHandler(e) {
-    //deltaMove is Screen Point (x,y) 
+    camera.matrixAutoUpdate = false;
+    camera.matrixWorldNeedsUpdate = true;
+    // deltaMove is Screen Point (x,y) 
     deltaMove = {
         x: e.offsetX-previousMousePosition.x,
         y: e.offsetY-previousMousePosition.y
     };
 
     if(isRotating) {
-        //worldPoint is the position of screen point in 3D space in world coordinates 
-        //let worldPoint = new THREE.Vector3(deltaMove.x, deltaMove.y, 0).unproject(camera);
-        //console.log(deltaMove);
-        //console.log(worldPoint);
-
+        // deltaMove is the movement of mouse point in screen space  
+        //console.log(previousMousePosition);
+        //console.log(deltaMove); 
+        let viewPoint = getViewPoint(deltaMove);
+        //console.log(viewPoint);
+        
+        // WorldPoint is the position of projection screen point in 3D pace in world coordinates 
+        let worldPoint = new THREE.Vector3(viewPoint.x, viewPoint.y, viewPoint.z).unproject(camera);
+        console.log(worldPoint);
+        
         // ray / direction of click on world coordinates 
         // worldPoint is the normalized ray direction from the camera 
         //worldPoint.sub(camera.position).normalize();
 
         //let myAxis = new THREE.Vector3(worldPoint.x, worldPoint.y, worldPoint.z);
-        let mat_rotation_x = new THREE.Matrix4().makeRotationY(deltaMove.x * -0.01);
-        let mat_rotation_y = new THREE.Matrix4().makeRotationX(deltaMove.y * -0.01);
+        let mat_rotation_x = new THREE.Matrix4().makeRotationY(worldPoint.x * 0.01);
+        let mat_rotation_y = new THREE.Matrix4().makeRotationX(worldPoint.y * 0.01);
+        let mat_rotation_z = new THREE.Matrix4().makeRotationZ(worldPoint.z * -0.01);
         //mat_rotation.multiply(mat_rotation_x);
         //mat_rotation.multiply(mat_rotation_y);
-        mat_rotation_x.multiply(mat_rotation_y);
+        mat_rotation_x.multiply(mat_rotation_y);//.multiply(mat_rotaiton_z);
+        //mat_rotation_x.multiply(mat_rotaiton_z)
 
-        camera.matrixWorldNeedsUpdate = true;
+        
         camera.applyMatrix4(mat_rotation_x);
 
         //pos is the postion of world position in 2d Screen space 
         //let pos = camera.position.clone();  //what??? object?? 
         //pos.project(camera);
         //console.log(pos);
-
-
-
-        /*
-        var deltaRotaionQuaternion = new THREE.Quaternion().setFromEuler(new THREE.Euler(
-            deltaMove.y * 0.01 * (Math.PI/180),
-            deltaMove.x * 0.01 * (Math.PI/180),
-            0,
-            'XYZ'
-        ));
-
-        let mat_rotation = new THREE.Matrix4();
-        let mat_rotation_x = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(-1,0,0), deltaMove.y * 0.1 * Math.PI/180);
-        let mat_rotation_y = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0,-1,0), deltaMove.x * 0.1 * Math.PI/180);
-        let mat_rotation_z = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0,0,1), 0.001 * Math.PI/180); 
-        let transformation = new THREE.Matrix4().makeTranslation(
-            deltaMove.x - camera.position.x,
-            deltaMove.y - camera.position.y,
-            camera.position.z
-        );
-        transformation.getInverse(transformation);
-        mat_rotation.multiply(mat_rotation_x).multiply(mat_rotation_y)//.multiply(transformation)//.multiply(mat_rotation_z);
-        
-        camera.matrixWorldNeedsUpdate = true;
-        camera.applyMatrix4(mat_rotation);
-        
-        //camera.quaternion.multiplyQuaternions(deltaRotaionQuaternion, camera.quaternion);}
-        //camera.applyMatrix4(mat_rotation.multiply(transformation));
-        */
     }
     
     else if(isPanning) {
         let a = new THREE.Matrix4().makeTranslation(-10* (deltaMove.x/ render_w), 10* (deltaMove.y/ render_h), 0);
-
-        camera.matrixWorldNeedsUpdate = true;
         camera.matrix.multiply(a);
         console.log(camera.matrix);
     }
@@ -268,32 +249,16 @@ function mouseWheel(e) {
     camera.matrixWorldNeedsUpdate = true;
     camera.matrix.copy(cam_mat_prev);
     //console.log(camera.matrix);
-
-    /*
-    const d = camera.position.distanceTo( new THREE.Vector3());
-    if(e.wheelDelta>0) {
-        const newD = d - 0.15;  
-        camera.position.x *= ( newD / d);
-        camera.position.y *= ( newD / d);
-        camera.position.z *= ( newD / d);}
-    else if (e.wheelDelta<0) {
-        const newD = d + 0.15;
-        camera.position.x *= ( newD / d);
-        camera.position.y *= ( newD / d);
-        camera.position.z *= ( newD / d);}
-    */
-
-    //camera.position.z += event.deltaY / 1000;
-    // prevent scrolling beyond a min/max value
-    //camera.position.clampScalar(0, 10);
 }   
 
-function screenToWolrd(screenPos){
-    let worldPos = screenPos.clone();
+function getViewPoint(screenPos){
+    let worldPos = {
+        x : screenPos.x,
+        y : screenPos.y,
+        z : -0.5
+    };
     worldPos.x = worldPos.x / (window.innerWidth/2) - 1; 
     worldPos.y = worldPos.y / (window.innerHeight/2) + 1;
-    worldPos.z = 0.5;
-    worldPos.unproject(camera);
     return worldPos;
 }
 
