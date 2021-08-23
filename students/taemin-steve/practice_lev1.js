@@ -23,15 +23,12 @@ cameraSpace.add(camera);
 renderer.setSize(render_w, render_h);
 /// 기본적인 화면 설정
 
-//const controls = new OrbitControls(camera, renderer.domElement);
 
 
 const geomery = new THREE.BoxGeometry(1, 1, 1);
 const texture = new THREE.TextureLoader().load( './teximg.PNG' );
 const material = new THREE.MeshPhongMaterial( {color:0xFFFFFF, map:texture} );
 /// add object3D 
-const overallObject3D = new THREE.Object3D();
-const forObject3D = new THREE.Object3D();
 const cube = new THREE.Mesh(geomery, material);
 cube.matrixAutoUpdate = false;
 /// 박스 만들기
@@ -73,13 +70,9 @@ function dom_init() {
 function scene_init() {
     ///add object3D ,
     scene.add(cameraSpace);
-    scene.add(overallObject3D);
-    overallObject3D.add(forObject3D)
-    forObject3D.add(cube);
-    forObject3D.add(new THREE.AxesHelper(2));
-    forObject3D.add(light);
-    //scene.add(cube);
-    //scene.add(new THREE.AxesHelper(2));// 축 생성
+    scene.add(cube);
+    scene.add(new THREE.AxesHelper(2));// 축 생성
+    scene.add(light);
 
     light.position.set(-2, 2, 2);
     light.target = cube;
