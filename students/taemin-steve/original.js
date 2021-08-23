@@ -13,14 +13,17 @@ console.log("devicePixelRatio: " + window.devicePixelRatio);
 
 
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera( 75, render_w/render_h, 0.1, 100);
+const far = 100;
+const near = 0.1 ;
+const camera = new THREE.PerspectiveCamera( 75, render_w/render_h, near, far);
 const renderer = new THREE.WebGLRenderer();
 const cameraSpace = new THREE.Object3D();
 cameraSpace.add(camera);
 //const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(render_w, render_h);
 /// 기본적인 화면 설정
-const controls = new OrbitControls(camera, renderer.domElement);
+
+//const controls = new OrbitControls(camera, renderer.domElement);
 
 
 const geomery = new THREE.BoxGeometry(1, 1, 1);
@@ -41,7 +44,7 @@ let mode_movement = "none";
 
 dom_init();
 scene_init();
-SetOrbitControls(true);
+//SetOrbitControls(true);
 
 function dom_init() {
     const container = document.getElementById('render_div');
@@ -86,21 +89,24 @@ function scene_init() {
     light_helper = new THREE.DirectionalLightHelper(light, 0.3);
     scene.add( light_helper );
 
-    camera.position.set(0, 0, 5);
-    camera.lookAt(0, 0, 0);
-    camera.up.set(0, 1, 0);
+    camera.matrixAutoUpdate = false;
 
-    controls.target.set( 0, 0, 0 );
+    
+    let a = new THREE.Matrix4().makeTranslation(0, 0, 5);
+    let b = new THREE.Matrix4().lookAt(
+        new THREE.Vector3(5, 5, 5),
+        new THREE.Vector3(0, 0, 0),
+        new THREE.Vector3(0, 1, 0)
+    );
+    
+    camera.matrixWorldNeedsUpdate = true;
+    camera.matrix.copy(a);
+    console.log(camera.matrix);
+    console.log(camera.position);
+    
 }/// 전체적인 장면의 세부 설정 함수
 
-function SetOrbitControls(enable_orbitctr){
-    controls.enabled = enable_orbitctr;
-    controls.enablePan = true;
-    controls.enableZoom = true;
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.05;
-    controls.update();
-}
+
 /*
 render_animation();
 function render_animation(){
@@ -110,90 +116,140 @@ function render_animation(){
 }
 /**/
 // I strongly recommend you guys to read "Lambda function/code" articles
-// let rightButtonClick = false;
-// let leftButtonClick = false;
-// let rightButtonMousePosX = 0;
-// let rightButtonMousePosY = 0;
+let rightButtonClick = false;
+let leftButtonClick = false;
 
-// let angleX = 0;
-// let angleY = 0;
-// let angleYSum = 0;
+
+let mouse3D = new THREE.Vector3();
+let prevMouse3D = new THREE.Vector3();
+let worldMouse3D = new THREE.Vector3();
+
+
 
 renderer.setAnimationLoop( ()=>{
     //controls.update();
     renderer.render( scene, camera );
 } );
 /**/
+ 
 
 function mouseDownHandler(e) {
-    // if (e.which == 3) {
-    //     rightButtonClick = true;
-    // }
-    // else if ( e.which == 1){
-    //     leftButtonClick = true;
-    // }
-    
+    if (e.which == 3) {
+        rightButtonClick = true;
+    }
+    else if ( e.which == 1){
+        leftButtonClick = true;
+    }
 }
+
 
 function mouseUpHandler(e) {
-    // rightButtonClick = false;
-    // leftButtonClick = false;
+    rightButtonClick = false;
+    leftButtonClick = false;
 }
 
+
+
 function mouseMoveHandler(e) {
-    console.log(camera.position);
-    // cameraSpace.matrixAutoUpdate = false;
-    // cameraSpace.matrixWorldNeedsUpdate = true;
 
-    // if(rightButtonClick){
-        
-    //     let a = new THREE.Matrix4().makeTranslation(-10 * (e.offsetX - rightButtonMousePosX)/ render_w, 10*(e.offsetY - rightButtonMousePosY)/ render_h, 0);
+    camera.matrixAutoUpdate = false;
+    camera.matrixWorldNeedsUpdate = true;
+    cameraSpace.matrixWorldNeedsUpdate = true;
+    cameraSpace.matrixAutoUpdate = false;
 
-    //     cameraSpace.matrix.multiply(a);
-    //     console.log(camera.matrix);
-    // }
-    // else if(leftButtonClick){
+    let cameraLookAt = cameraSpace.localToWorld(new THREE.Vector3(0,0,0));
+
+    let cameraPos = new THREE.Vector3(camera.matrixWorld.elements[12],camera.matrixWorld.elements[13],camera.matrixWorld.elements[14]);
+    let d = cameraPos.distanceTo(cameraLookAt);
+    let scale = d /(2*near); 
+
+    mouse3D = new THREE.Vector3( ( e.clientX /render_w ) * 2 - 1,
+        -( e.clientY / render_h ) * 2 + 1,
+        0);
+
+    let tempMouse3D = mouse3D.clone();
+
+    let unMouse3D = mouse3D.unproject(camera).clone();
+    let unPrevMouse3D = prevMouse3D.unproject(camera).clone();   
+
+    
+    if(rightButtonClick){
+
+        camera.worldToLocal(unMouse3D);
+        camera.worldToLocal(unPrevMouse3D);
+
+        worldMouse3D = unMouse3D.sub(unPrevMouse3D);
+        worldMouse3D.multiplyScalar(scale);
         
-    //     angleX = -Math.PI*2*2*(e.offsetX - rightButtonMousePosX)/render_w;
-    //     angleY = -Math.PI*2*2*(e.offsetY - rightButtonMousePosY)/render_h;
+        let m = new THREE.Matrix4();
+
+        m.makeTranslation(- (worldMouse3D.x),-(worldMouse3D.y),-(worldMouse3D.z),);
+
+        let cam_mat_prev = cameraSpace.matrix.clone();
+        cam_mat_prev.multiply(m); // 얘는 왜 또 그냥 multiply인거지?
+        cameraSpace.matrix.copy(cam_mat_prev); 
+
+    }
+    else if(leftButtonClick){
         
-    //     let a = new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),angleY));
-    //     let b = new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),angleX));
-    //     a.multiply(b);
-    //     cameraSpace.matrix.multiply(a);
-    // }
-    // rightButtonMousePosX = e.offsetX;
-    // rightButtonMousePosY = e.offsetY;
+        unMouse3D.sub(cameraLookAt);
+        console.log(camera.matrix);
+        unPrevMouse3D.sub(cameraLookAt);
+        
+        let forAngleA = unPrevMouse3D.clone();
+        let forAngleB = unMouse3D.clone();
+        
+        let d1 = forAngleA.length();
+        let d2 = forAngleB.length();
+        
+        let dotProduct = forAngleA.dot(forAngleB);
+        
+        let theta = (180/Math.PI) * Math.acos(dotProduct/(d1*d2));
+
+        unPrevMouse3D.cross(unMouse3D);
+        if(unPrevMouse3D.equals(new THREE.Vector3(0,0,0))){
+            theta = 0;
+        }
+        
+        let a = new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(unPrevMouse3D.normalize(),-Math.abs(theta)));
+        let cam_mat_prev = cameraSpace.matrix.clone();
+        cam_mat_prev.premultiply(a);
+        cameraSpace.matrix.copy(cam_mat_prev); /// 이렇게 하면 왜 해결되는거지? 그냥 multiply랑 뭐가 다른데?   camera.matrix.premultiply(a); 그냥 이렇게 해도됨
+        ///premultiply multiply 차이와, 굳이 직접 변환하지 않고, copy해주는 이유는??
+    }
+    prevMouse3D = tempMouse3D.clone();
 }
 
 
 function mouseWheel(e) {
-    console.log(camera.position);
-    // camera.matrixAutoUpdate = false;
-    // camera.matrixWorldNeedsUpdate = true;
-    // let cam_view = new THREE.Vector3(0, 0, -1); // in the camera space, -z is the viewing direction
-    // cam_view.transformDirection(camera.matrix); // refer to THREE.js doc
-    // //console.log(cam_view);
+    
+    camera.matrixAutoUpdate = false;
+    camera.matrixWorldNeedsUpdate = true;
+    let cam_view = new THREE.Vector3(0, 0, -1); // in the camera space, -z is the viewing direction
+    cam_view.transformDirection(camera.matrix); // refer to THREE.js doc   cma_view는 원점을 바라보는 방향. 카메라 메트릭스의 위치 많큼 변환 시킴. 
+    //console.log(cam_view);
 
-    // let view_move = cam_view.clone();
+    let view_move = cam_view.clone();
 
-    // let mat_viewingTrans = new THREE.Matrix4();
-    // if(e.deltaY > 0) {
-    //     // wheel down
-    //     view_move.multiplyScalar(-0.1);
-    // }
-    // else {
-    //     // wheel up
-    //     view_move.multiplyScalar(0.1);
-    // }
-    // //console.log(view_move);
-    // mat_viewingTrans.makeTranslation(view_move.x, view_move.y, view_move.z);
-    // //console.log(mat_viewingTrans);
+    let mat_viewingTrans = new THREE.Matrix4();
+    if(e.deltaY > 0) {
+        // wheel down
+        view_move.multiplyScalar(-0.1);
+    }
+    else {
+        // wheel up
+        view_move.multiplyScalar(0.1);
+    }
+    //console.log(view_move);
+    mat_viewingTrans.makeTranslation(view_move.x, view_move.y, view_move.z);
+    //console.log(mat_viewingTrans);
 
-    // let cam_mat_prev = camera.matrix.clone();
-    // // cam_mat_prev = mat_viewingTrans * cam_mat_prev
-    // cam_mat_prev.premultiply(mat_viewingTrans);
-    // // camera.matrix = cam_mat_prev
-    // camera.matrix.copy(cam_mat_prev);
+    let cam_mat_prev = camera.matrix.clone();
+    // cam_mat_prev = mat_viewingTrans * cam_mat_prev
+    cam_mat_prev.premultiply(mat_viewingTrans);
+    // camera.matrix = cam_mat_prev
+    camera.matrix.copy(cam_mat_prev);
+
+    // camera.matrix.premultiply(mat_viewingTrans); 이렇게 하지 않을 이유가 있는가? 
+    // 또한 해당에서는 multiply와 차이가 없는데 물리적으로 어떤 현상이 벌어지고 있는지 잘 모르겠다.
 }
-

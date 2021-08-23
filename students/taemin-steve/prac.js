@@ -186,66 +186,45 @@ function mouseMoveHandler(e) {
 
     
     if(rightButtonClick){
-        camera.worldToLocal(unMouse3D);
-        camera.worldToLocal(unPrevMouse3D);
         worldMouse3D = unMouse3D.sub(unPrevMouse3D);
         worldMouse3D.multiplyScalar(scale);
-        cameraLookAt.add(worldMouse3D);
         
         let m = new THREE.Matrix4();
 
-        m.set( 1, 0, 0, - (worldMouse3D.x),
-               0, 1, 0,  -(worldMouse3D.y),
-               0, 0, 1, -(worldMouse3D.z),
-               0, 0, 0, 1 );
+        m.makeTranslation(- (worldMouse3D.x),-(worldMouse3D.y),-(worldMouse3D.z),);
 
         let cam_mat_prev = camera.matrix.clone();
         cam_mat_prev.multiply(m); // 얘는 왜 또 그냥 multiply인거지?
-        camera.matrix.copy(cam_mat_prev);     
+        camera.matrix.copy(cam_mat_prev); 
+
     }
     else if(leftButtonClick){
         
-        angleX = -Math.PI*2*2*(e.clientX - rightButtonMousePosX)/render_w;
-        angleY = -(Math.PI*2*2*(e.clientY - rightButtonMousePosY)/render_h)*(render_h/render_w);
-        
-        let a = new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),angleY));
-        let b = new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),angleX));
-        a.multiply(b);
-        camera.matrix.premultiply(a);
+        unMouse3D.sub(cameraLookAt);
         console.log(camera.matrix);
-
-        // let cam_mat_prev = camera.matrix.clone();
-        // cam_mat_prev.premultiply(a);
-        // camera.matrix.copy(cam_mat_prev); /// 이렇게 하면 왜 해결되는거지? 그냥 multiply랑 뭐가 다른데? 
-
+        unPrevMouse3D.sub(cameraLookAt);
         
+        let forAngleA = unPrevMouse3D.clone();
+        let forAngleB = unMouse3D.clone();
         
-        // unMouse3D.sub(cameraLookAt);
-        // unPrevMouse3D.sub(cameraLookAt);
-
-        // let forAngleA = unPrevMouse3D;
-        // let forAngleB = unMouse3D;
-
-        // let d1 = forAngleA.length();
-        // let d2 = forAngleB.length();
+        let d1 = forAngleA.length();
+        let d2 = forAngleB.length();
         
-        // let dotProduct = forAngleA.dot(forAngleB);
-
-        // let theta = (180/Math.PI) * Math.acos(dotProduct/(d1*d2));
-        // console.log(theta);
+        let dotProduct = forAngleA.dot(forAngleB);
         
-        // // camera.worldToLocal(unMouse3D);
-        // // camera.worldToLocal(unPrevMouse3D);
-        // unPrevMouse3D.cross(unMouse3D);
-        // camera.worldToLocal(unPrevMouse3D);
+        let theta = (180/Math.PI) * Math.acos(dotProduct/(d1*d2));
+
+        unPrevMouse3D.cross(unMouse3D);
+        if(unPrevMouse3D.equals(new THREE.Vector3(0,0,0))){
+            theta = 0;
+        }
         
-        // let a = new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(unPrevMouse3D,theta));
-        // camera.matrix.multiply(a);
-
-
+        let a = new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(unPrevMouse3D.normalize(),-Math.abs(theta)));
+        let cam_mat_prev = camera.matrix.clone();
+        cam_mat_prev.premultiply(a);
+        camera.matrix.copy(cam_mat_prev); /// 이렇게 하면 왜 해결되는거지? 그냥 multiply랑 뭐가 다른데?   camera.matrix.premultiply(a); 그냥 이렇게 해도됨
+        ///premultiply multiply 차이와, 굳이 직접 변환하지 않고, copy해주는 이유는??
     }
-    rightButtonMousePosX = e.clientX;
-    rightButtonMousePosY = e.clientY;
     prevMouse3D = tempMouse3D.clone();
     
 }
