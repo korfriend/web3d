@@ -68,7 +68,6 @@ function dom_init() {
 }
 
 function scene_init() {
-    ///add object3D ,
     scene.add(cameraSpace);
     scene.add(cube);
     scene.add(new THREE.AxesHelper(2));// 축 생성
@@ -94,9 +93,6 @@ function scene_init() {
     
     camera.matrixWorldNeedsUpdate = true;
     camera.matrix.copy(a);
-    console.log(camera.matrix);
-    console.log(camera.position);
-    
 }/// 전체적인 장면의 세부 설정 함수
 
 
@@ -109,39 +105,31 @@ function render_animation(){
 }
 /**/
 // I strongly recommend you guys to read "Lambda function/code" articles
-let rightButtonClick = false;
-let leftButtonClick = false;
-
-
-let mouse3D = new THREE.Vector3();
-let prevMouse3D = new THREE.Vector3();
-let worldMouse3D = new THREE.Vector3();
-
-
 
 renderer.setAnimationLoop( ()=>{
     //controls.update();
     renderer.render( scene, camera );
 } );
 /**/
- 
+
+let rightMouseButtonClick = false;
+let leftMouseButtonClick = false;
 
 function mouseDownHandler(e) {
     if (e.which == 3) {
-        rightButtonClick = true;
+        rightMouseButtonClick = true;
     }
     else if ( e.which == 1){
-        leftButtonClick = true;
+        leftMouseButtonClick = true;
     }
 }
 
-
 function mouseUpHandler(e) {
-    rightButtonClick = false;
-    leftButtonClick = false;
+    rightMouseButtonClick = false;
+    leftMouseButtonClick = false;
 }
 
-
+let prevScreenSpaceMousePoint = new THREE.Vector3(); // We need this reference even the mouseMoveHandler() is finished.
 
 function mouseMoveHandler(e) {
 
@@ -152,65 +140,64 @@ function mouseMoveHandler(e) {
 
     let cameraLookAt = cameraSpace.localToWorld(new THREE.Vector3(0,0,0));
 
-    let cameraPos = new THREE.Vector3(camera.matrixWorld.elements[12],camera.matrixWorld.elements[13],camera.matrixWorld.elements[14]);
+    let cameraPos = camera.localToWorld(new THREE.Vector3(0,0,0));
     let d = cameraPos.distanceTo(cameraLookAt);
     let scale = d /(2*near); 
 
-    mouse3D = new THREE.Vector3( ( e.clientX /render_w ) * 2 - 1,
+    let screenSpaceMousePoint = new THREE.Vector3( ( e.clientX /render_w ) * 2 - 1,
         -( e.clientY / render_h ) * 2 + 1,
         0);
 
-    let tempMouse3D = mouse3D.clone();
+    let tempScreenSpaceMousePoint = screenSpaceMousePoint.clone();
 
-    let unMouse3D = mouse3D.unproject(camera).clone();
-    let unPrevMouse3D = prevMouse3D.unproject(camera).clone();   
+    let worldSpaceMousePoint = screenSpaceMousePoint.unproject(camera).clone();
+    let prevWorldSpaceMousePoint = prevScreenSpaceMousePoint.unproject(camera).clone();   
 
     
-    if(rightButtonClick){
+    if(rightMouseButtonClick){
 
-        // camera.worldToLocal(unMouse3D);
-        // camera.worldToLocal(unPrevMouse3D); 카메라 스페이스가 돌지 않아서 이거 안해줘도 됨.
+        // camera.worldToLocal(worldSpaceMousePoint);
+        // camera.worldToLocal(prevWorldSpaceMousePoint); cameraSpace의 좌표계는 회전하지 않기 때문에 camera 기준의 좌표계로 바꿀 필요가 없다. 
 
-        worldMouse3D = unMouse3D.sub(unPrevMouse3D);
-        worldMouse3D.multiplyScalar(scale);
+        let cameraMoveInWorld = worldSpaceMousePoint.sub(prevWorldSpaceMousePoint);
+        cameraMoveInWorld.multiplyScalar(scale);
         
         let m = new THREE.Matrix4();
 
-        m.makeTranslation(- (worldMouse3D.x),-(worldMouse3D.y),-(worldMouse3D.z),);
+        m.makeTranslation(- (cameraMoveInWorld.x),-(cameraMoveInWorld.y),-(cameraMoveInWorld.z),);
 
         let cam_mat_prev = cameraSpace.matrix.clone();
-        cam_mat_prev.multiply(m); // 얘는 왜 또 그냥 multiply인거지?
+        cam_mat_prev.premultiply(m); //  premultiply(), multiply() 모두 screen graph 구조상 상관 없음. 
         cameraSpace.matrix.copy(cam_mat_prev); 
 
     }
-    else if(leftButtonClick){
+    else if(leftMouseButtonClick){
         
-        unMouse3D.sub(cameraLookAt);
-        console.log(camera.matrix);
-        unPrevMouse3D.sub(cameraLookAt);
+        worldSpaceMousePoint.sub(cameraLookAt);
+        prevWorldSpaceMousePoint.sub(cameraLookAt);
         
-        let forAngleA = unPrevMouse3D.clone();
-        let forAngleB = unMouse3D.clone();
+        let mouseVector = prevWorldSpaceMousePoint.clone();
+        let prevMouseVector = worldSpaceMousePoint.clone();
         
-        let d1 = forAngleA.length();
-        let d2 = forAngleB.length();
+        let d1 = mouseVector.length();
+        let d2 = prevMouseVector.length();
         
-        let dotProduct = forAngleA.dot(forAngleB);
+        let dotProduct = mouseVector.dot(prevMouseVector);
         
         let theta = (180/Math.PI) * Math.acos(dotProduct/(d1*d2));
 
-        unPrevMouse3D.cross(unMouse3D);
-        if(unPrevMouse3D.equals(new THREE.Vector3(0,0,0))){
+        prevWorldSpaceMousePoint.cross(worldSpaceMousePoint);
+
+        if(prevWorldSpaceMousePoint.equals(new THREE.Vector3(0,0,0))){
             theta = 0;
         }
         
-        let a = new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(unPrevMouse3D.normalize(),-Math.abs(theta)));
+        let a = new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(prevWorldSpaceMousePoint.normalize(),-Math.abs(theta)));
         let cam_mat_prev = camera.matrix.clone();
-        cam_mat_prev.premultiply(a);
-        camera.matrix.copy(cam_mat_prev); /// 이렇게 하면 왜 해결되는거지? 그냥 multiply랑 뭐가 다른데?   camera.matrix.premultiply(a); 그냥 이렇게 해도됨
-        ///premultiply multiply 차이와, 굳이 직접 변환하지 않고, copy해주는 이유는??
+        cam_mat_prev.premultiply(a); // 여기서 premultiply가 들어가는 것은, 이동한 다음에, rotation이 되어야 하기 때문.
+        camera.matrix.copy(cam_mat_prev);
     }
-    prevMouse3D = tempMouse3D.clone();
+    prevScreenSpaceMousePoint = tempScreenSpaceMousePoint.clone();
 }
 
 
@@ -242,8 +229,5 @@ function mouseWheel(e) {
     cam_mat_prev.premultiply(mat_viewingTrans);
     // camera.matrix = cam_mat_prev
     camera.matrix.copy(cam_mat_prev);
-
-    // camera.matrix.premultiply(mat_viewingTrans); 이렇게 하지 않을 이유가 있는가? 
-    // 또한 해당에서는 multiply와 차이가 없는데 물리적으로 어떤 현상이 벌어지고 있는지 잘 모르겠다.
 }
 
