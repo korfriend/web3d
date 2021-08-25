@@ -2,6 +2,7 @@ import * as THREE from "/js/three.module.js";
 import {OrbitControls} from "/js/OrbitControls.js";
 import {GUI} from '/js/dat.gui.module.js';
 
+
 // https://threejsfundamentals.org/threejs/lessons/kr/threejs-fundamentals.html
 const render_w = window.innerWidth;
 const render_h = window.innerHeight;
@@ -38,6 +39,22 @@ var previousMousePosition = {
     x: 0,
     y: 0
 };
+
+const coords = new THREE.Vector3;
+const worldPosition = new THREE.Vector3()
+const plane = new THREE.Plane(new THREE.Vector3(0.0, 1.0, 0.0))
+const raycaster = new THREE.Raycaster()
+
+function screenToWorld({ x, y, canvasWidth, canvasHeight, camera }) {
+
+	coords.set(
+		(x / canvasWidth) * 2 - 1,
+		-(y / canvasHeight) * 2 + 1,
+		0.5
+	)
+	raycaster.setFromCamera(coords, camera)
+	return raycaster.ray.intersectPlane(plane, worldPosition)
+}
 
 dom_init();
 scene_init();
@@ -138,34 +155,40 @@ function mouseMoveHandler(e) {
     camera.matrixAutoUpdate = false;
     camera.matrixWorldNeedsUpdate = true;
     let mat_viewingTrans = new THREE.Matrix4();
+
+    //console.log(getSceneToWorld(previousMousePosition.x,previousMousePosition.y));
+
  
     if (leftdown == true) {
-        
-
          let pos = new THREE.Vector3();
-         //pos = pos.setFromMatrixPosition(camera.matrix);
-         //pos.project(camera);
          pos.x = (e.offsetX - previousMousePosition.x)/render_w;
          pos.y = (e.offsetY - previousMousePosition.y)/render_h;
          pos.z = 0;
 
         console.log(pos);
+        const pos2 = screenToWorld({
+            x: e.offsetX,
+            y: e.offsetY,
+            canvasWidth: window.innerWidth,
+            canvasHeight: window.innerHeight,
+            camera
+        })
+        console.log(pos2)
+        //pos.x = pos2.x;
+        //pos.y = pos2.y;
+        //pos.z = pos2.z;
 
         const myAxis = new THREE.Vector3(-(e.offsetY - previousMousePosition.y),-(e.offsetX - previousMousePosition.x),0);
-        //axis = new Vector3().cross(up, normal);
         mat_viewingTrans.makeRotationAxis(myAxis.normalize(),  Math.PI*Math.sqrt(pos.x*pos.x+pos.y*pos.y));
-        
     }
 
     else if (rightdown == true) {
         mat_viewingTrans.makeTranslation(-(e.offsetX-previousMousePosition.x)/render_w*5, 
         (e.offsetY-previousMousePosition.y)/render_h*5,0);
-        //console.log(previousMousePosition);
     }
 
-    let cam_mat_prev = camera.matrix.clone();
-    cam_mat_prev.premultiply(mat_viewingTrans);
-    camera.matrix.copy(cam_mat_prev);
+    camera.matrix.premultiply(mat_viewingTrans);
+    
     
     previousMousePosition = {
         x: e.offsetX,
