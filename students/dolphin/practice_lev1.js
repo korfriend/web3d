@@ -156,43 +156,40 @@ function mouseDownHandler(e) {
         y: e.offsetY
     };
     //console.log("isRotating : " + isRotating + ", isPanning : " + isPanning)
-    console.clear();
+    //console.clear();
 }
 
-//어떤 점을 기준으로 돌아갈 것인가? -> default 원점 
-//camera rotation axis in world space 
-//
 function mouseMoveHandler(e) {
     camera.matrixAutoUpdate = false;
     camera.matrixWorldNeedsUpdate = true;
-    // deltaMove is Screen Point (x,y) 
+    
     deltaMove = {
         x: e.offsetX-previousMousePosition.x,
         y: e.offsetY-previousMousePosition.y
     };
 
     if(isRotating) {
-        // deltaMove is the movement of mouse point in screen space  
-        //console.log(previousMousePosition);
-        //console.log(deltaMove); 
-        let viewPoint = getViewPoint(deltaMove);
-        //console.log(viewPoint);
-        
-        // WorldPoint is the position of projection screen point in 3D pace in world coordinates 
-        let worldPoint = new THREE.Vector3(viewPoint.x, viewPoint.y, viewPoint.z).unproject(camera);
-        console.log(worldPoint);
-        
+        // mousepoint convert to world coordinate system (x,y,z) : worldSpacePoint
+        // screenSpacePoint : position of a 3D point in space along the ray in Normalized Device Coordinates
+        let screenSpacePoint = new THREE.Vector3(deltaMove.x / render_w * 2 - 1 , -deltaMove.y / render_h * 2 + 1, 0); // projectspace point?? 
+        let worldSpacePoint = screenSpacePoint.clone().unproject(camera);
+
+        // worldSpacePoint is the normalized ray direction from the camera
+        // .sub() : 이 벡터에서 ()에 있는 v를 뺍니다  
+        worldSpacePoint.sub(camera.position).normalize(); //?? 
+
+        console.log(deltaMove);
         // ray / direction of click on world coordinates 
         // worldPoint is the normalized ray direction from the camera 
         //worldPoint.sub(camera.position).normalize();
 
         //let myAxis = new THREE.Vector3(worldPoint.x, worldPoint.y, worldPoint.z);
-        let mat_rotation_x = new THREE.Matrix4().makeRotationY(worldPoint.x * 0.01);
-        let mat_rotation_y = new THREE.Matrix4().makeRotationX(worldPoint.y * 0.01);
-        let mat_rotation_z = new THREE.Matrix4().makeRotationZ(worldPoint.z * -0.01);
+        let mat_rotation_x = new THREE.Matrix4().makeRotationY(worldSpacePoint.x * 0.01);
+        let mat_rotation_y = new THREE.Matrix4().makeRotationX(worldSpacePoint.y * 0.01);
+        let mat_rotation_z = new THREE.Matrix4().makeRotationZ(worldSpacePoint.z * -0.01);
         //mat_rotation.multiply(mat_rotation_x);
-        //mat_rotation.multiply(mat_rotation_y);
-        mat_rotation_x.multiply(mat_rotation_y);//.multiply(mat_rotaiton_z);
+        //mat_rotation_x.multiply(mat_rotation_y);
+        //mat_rotation_x.multiply(mat_rotation_y);//.multiply(mat_rotaiton_z);
         //mat_rotation_x.multiply(mat_rotaiton_z)
 
         
@@ -209,7 +206,6 @@ function mouseMoveHandler(e) {
         camera.matrix.multiply(a);
         console.log(camera.matrix);
     }
-
     previousMousePosition = {
         x: e.offsetX,
         y: e.offsetY
@@ -257,8 +253,8 @@ function getViewPoint(screenPos){
         y : screenPos.y,
         z : -0.5
     };
-    worldPos.x = worldPos.x / (window.innerWidth/2) - 1; 
-    worldPos.y = worldPos.y / (window.innerHeight/2) + 1;
+    worldPos.x = (worldPos.x / render_w)*2 - 1; 
+    worldPos.y = (worldPos.y / render_h)*2 + 1;
     return worldPos;
 }
 
