@@ -67,6 +67,7 @@ function dom_init() {
 
         renderer.setSize( render_w, render_h );
     }
+    
 }
 
 function scene_init() {
@@ -136,14 +137,13 @@ renderer.setAnimationLoop( ()=>{ // every available frame
 
 
 var isRotating, isPanning;
-var previousMousePosition = {
+let previousMousePosition = {
     x: 0,
     y: 0
 };
-var deltaMove = {
-    x: 0,
-    y: 0
-};
+let theta = 45, phi = 60, radious = 1600,mouseDownTheta = 0, mouseDownPhi = 0;
+//let projector = new THREE.projector();
+let ray = new THREE.Ray(camera.position, null);
 
 function mouseDownHandler(e) {
     // Gecko (Firefox), WebKit (Safari/Chrome) & Opera -> which, IE, Opera -> button
@@ -151,54 +151,67 @@ function mouseDownHandler(e) {
         isRotating = true;
     if (e.which==3 || e.button ==2)
         isPanning = true;
+    //console.log("isRotating : " + isRotating + ", isPanning : " + isPanning)
+    //console.clear();
+
     previousMousePosition = {
         x: e.offsetX,
         y: e.offsetY
     };
-    //console.log("isRotating : " + isRotating + ", isPanning : " + isPanning)
-    //console.clear();
+    
 }
 
 function mouseMoveHandler(e) {
     camera.matrixAutoUpdate = false;
     camera.matrixWorldNeedsUpdate = true;
-    
-    deltaMove = {
+
+    let deltaMove = {
         x: e.offsetX-previousMousePosition.x,
         y: e.offsetY-previousMousePosition.y
     };
-
+    
     if(isRotating) {
+        //theta = - ((e.offsetX - previousMousePosition.x) * 0.5) + mouseDownTheta;
+        //phi = ((e.offsetY - previousMousePosition.y) * 0.5) + mouseDownPhi;
+
+        //phi = Math.min( 180, Math.max(0, phi));
+
         // mousepoint convert to world coordinate system (x,y,z) : worldSpacePoint
         // screenSpacePoint : position of a 3D point in space along the ray in Normalized Device Coordinates
-        let screenSpacePoint = new THREE.Vector3(deltaMove.x / render_w * 2 - 1 , -deltaMove.y / render_h * 2 + 1, 0); // projectspace point?? 
-        let worldSpacePoint = screenSpacePoint.clone().unproject(camera);
+        let screenSpacePoint = new THREE.Vector3(previousMousePosition.x / render_w * 2 - 1 , -previousMousePosition.y / render_h * 2 + 1, 0); // projectspace point?? 
+        let worldSpacePoint = screenSpacePoint.unproject(camera);
 
-        // worldSpacePoint is the normalized ray direction from the camera
+        // direction is the normalized ray direction from the camera
         // .sub() : 이 벡터에서 ()에 있는 v를 뺍니다  
-        worldSpacePoint.sub(camera.position).normalize(); //?? 
+        let direction = worldSpacePoint.sub(camera.position).normalize();
+        let distance = - camera.position.z / direction.z;
 
-        console.log(deltaMove);
-        // ray / direction of click on world coordinates 
-        // worldPoint is the normalized ray direction from the camera 
-        //worldPoint.sub(camera.position).normalize();
+        let pos = camera.position.clone().add(direction.multiplyScalar(distance));
+        let position3D = {
+            x : pos.x,
+            y : pos.y,
+            z : 0
+        };
+
 
         //let myAxis = new THREE.Vector3(worldPoint.x, worldPoint.y, worldPoint.z);
-        let mat_rotation_x = new THREE.Matrix4().makeRotationY(worldSpacePoint.x * 0.01);
-        let mat_rotation_y = new THREE.Matrix4().makeRotationX(worldSpacePoint.y * 0.01);
-        let mat_rotation_z = new THREE.Matrix4().makeRotationZ(worldSpacePoint.z * -0.01);
+        let mat_rotation_x = new THREE.Matrix4().makeRotationY(position3D.x * 0.01);
+        let mat_rotation_y = new THREE.Matrix4().makeRotationX(position3D.y * 0.01);
+        let mat_rotation_z = new THREE.Matrix4().makeRotationZ(position3D.z * -0.01);
         //mat_rotation.multiply(mat_rotation_x);
         //mat_rotation_x.multiply(mat_rotation_y);
-        //mat_rotation_x.multiply(mat_rotation_y);//.multiply(mat_rotaiton_z);
+        mat_rotation_x.multiply(mat_rotation_y);//.multiply(mat_rotaiton_z);
         //mat_rotation_x.multiply(mat_rotaiton_z)
 
         
         camera.applyMatrix4(mat_rotation_x);
-
-        //pos is the postion of world position in 2d Screen space 
-        //let pos = camera.position.clone();  //what??? object?? 
-        //pos.project(camera);
-        //console.log(pos);
+        
+        //camera.position.x = radious * Math.sin(theta * Math.PI / 360) * Math.cos(phi * Math.PI / 360);
+        //camera.position.y = radious * Math.sin(phi * Math.PI / 360);
+        //camera.position.z = radious * Math.cos(theta * Math.PI / 360) * Math.cos(phi * Math.PI / 360);
+        //console.log(camera.position);
+        //let mouse3D = projector.unprojectVector(screenSpacePoint);
+        //ray.direction = mouse3D.subSelf(camera.position).normalize();
     }
     
     else if(isPanning) {
@@ -206,6 +219,7 @@ function mouseMoveHandler(e) {
         camera.matrix.multiply(a);
         console.log(camera.matrix);
     }
+
     previousMousePosition = {
         x: e.offsetX,
         y: e.offsetY
@@ -246,17 +260,6 @@ function mouseWheel(e) {
     camera.matrix.copy(cam_mat_prev);
     //console.log(camera.matrix);
 }   
-
-function getViewPoint(screenPos){
-    let worldPos = {
-        x : screenPos.x,
-        y : screenPos.y,
-        z : -0.5
-    };
-    worldPos.x = (worldPos.x / render_w)*2 - 1; 
-    worldPos.y = (worldPos.y / render_h)*2 + 1;
-    return worldPos;
-}
 
 /*
 마우스 좌표계를 받으면 (x,y)
