@@ -182,7 +182,6 @@ function mouseMoveHandler(e) {
         let worldSpacePoint = screenSpacePoint.unproject(camera);
 
         // direction is the normalized ray direction from the camera
-        // .sub() : 이 벡터에서 ()에 있는 v를 뺍니다  
         let direction = worldSpacePoint.sub(camera.position).normalize();
         let distance = - camera.position.z / direction.z;
 
