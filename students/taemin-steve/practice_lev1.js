@@ -142,11 +142,11 @@ function mouseMoveHandler(e) {
 
     let cameraPos = camera.localToWorld(new THREE.Vector3(0,0,0));
     let d = cameraPos.distanceTo(cameraLookAt);
-    let scale = d /(2*near); 
+    let scale = d /(near); 
 
     let screenSpaceMousePoint = new THREE.Vector3( ( e.clientX /render_w ) * 2 - 1,
         -( e.clientY / render_h ) * 2 + 1,
-        0);
+        -1);
 
     let tempScreenSpaceMousePoint = screenSpaceMousePoint.clone();
 
