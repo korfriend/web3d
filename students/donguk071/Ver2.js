@@ -1,9 +1,9 @@
 
-import * as THREE from "../../../js/three.module.js";
-import { OrbitControls } from "../../../js/OrbitControls.js";
-import { GUI } from '../../../js/dat.gui.module.js';
+import * as THREE from "../../js/three.module.js";
+import { OrbitControls } from "../../js/OrbitControls.js";
+import { GUI } from '../../js/dat.gui.module.js';
+import { VertexColors } from "../taemin-steve/js/three.module.js";
 
-// matrix / wordmatrix
 
 const render_w = window.innerWidth;                                                
 const render_h = window.innerHeight;
@@ -17,27 +17,25 @@ const camera = new THREE.PerspectiveCamera( 75, render_w/render_h, 0.1, 100);   
 const renderer = new THREE.WebGLRenderer();
 //const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(render_w, render_h);
-
-//const controls = new OrbitControls(camera, renderer.domElement);                  
-//const controls = new OrbitControls(camera, renderer.domElement);//카메라가 움직이기 가능해짐
+                
 //큐브생성
 const geomery = new THREE.BoxGeometry(1, 1, 1);
 const texture = new THREE.TextureLoader().load( './teximg.jpg' );
 const material = new THREE.MeshPhongMaterial( {color:0xFFFFFF, map:texture} );
 const cube = new THREE.Mesh(geomery, material);
-cube.matrixAutoUpdate = false; //큐브 조작 방지
+cube.matrixAutoUpdate = false; 
 
 const light = new THREE.DirectionalLight(0xFFFFFF, 1);
 let light_helper;
 let mode_movement = "none";
 
 ////추가좌표////
-const forcube = new THREE.Object3D();
-//const forcamera = new THREE.Object3D();
-//forcamera.add(camera);
+const forcamera = new THREE.Object3D();
+forcamera.add(camera);
 
 dom_init();
 scene_init();
+
 
 function dom_init() {
     const container = document.getElementById('render_div');
@@ -49,7 +47,7 @@ function dom_init() {
     container.addEventListener("wheel", mouseWheel, false);
     container.addEventListener('contextmenu', function (e) { 
         e.preventDefault(); 
-    }, false); //여기 분석 여러 리스너 추가하는 파트
+    }, false); 
 
     window.addEventListener( 'resize', onWindowResize );
 
@@ -60,45 +58,31 @@ function dom_init() {
         camera.updateProjectionMatrix(); 
 
         renderer.setSize( render_w, render_h );
-    } // 사이즈 조절이라 크게는 신경 안써도 될듯?
+    } 
 }
 
 function scene_init() {
-   // scene.add(forcamera);
-    scene.add(forcube);
+    scene.add(forcamera);
+    scene.add(cube);
     //좌표계하나에 두개의 좌표계를 추가하여 상대적인 움직임을 보여줘보자
-    forcube.add(cube);
-    forcube.add(new THREE.AxesHelper(2));
-    //scene.add(camera);
-    // camera는 굳이 scene에 포함하지 않아도 된다 
+    scene.add(cube);
+    scene.add(new THREE.AxesHelper(2));// 축 생성
+    scene.add(light);
 
     light.position.set(-2, 2, 2);
     light.target = cube;
-    forcube.add(light);
+    scene.add(light);
     scene.add( new THREE.AmbientLight( 0x222222 ) );
 
     light_helper = new THREE.DirectionalLightHelper(light, 0.3);                    // light(the light to be visualized), size(dimensions of the plan)
     scene.add( light_helper );
 
     camera.matrixAutoUpdate = false;
-    //camera.position.set(0, 0, 3);
-    //camera.lookAt(0, 0, 0);
-    //camera.up.set(0, 1, 0);
-    //console.log(camera.matrix);
     
     let a = new THREE.Matrix4().makeTranslation(0, 0, 5);
-    // let b = new THREE.Matrix4().lookAt(
-    //     new THREE.Vector3(5, 5, 5), 
-    //     new THREE.Vector3(0, 0, 0),
-    //     new THREE.Vector3(0, 1, 0)
-    // );
-    
-    // viewing matrix (or viewing transform)
+
     camera.matrixWorldNeedsUpdate = true;
-    camera.matrix.copy(a);
-    console.log(camera.matrix);
-    
-    //controls.target.set( 0, 0, 0 ); 
+    camera.matrix.copy(a);    
 }
 
 
@@ -132,38 +116,33 @@ function mouseUpHandler(e) {
 
 function mouseMoveHandler(e) {
     camera.matrixAutoUpdate = false;
-    camera.matrixWorldNeedsUpdate = true;
-    if(rightButtonClick){
-        let tran = new THREE.Matrix4().makeTranslation((e.offsetX-rightButtonMousePosX)*-0.01,(e.offsetY-rightButtonMousePosY)*0.01,0); 
-        camera.matrix.multiply(tran);
-        }
-    if(leftButtonClick){
-        camera.matrixAutoUpdate = false;
-        camera.matrixWorldNeedsUpdate = true;
-      //rotation 후 translation 후 곱해주기
+    camera.matrixWorldNeedsUpdate = true;   
+    forcamera.matrixAutoUpdate = false;
+    forcamera.matrixWorldNeedsUpdate = true;   
+
+    var ps = new THREE.Vector3();
+    var pos = new THREE.Vector3();
+    ps.set((e.clientX/window.innerWidth)*2-1,-(e.clientY/window.innerHeight)*2+1,-1);
+    //NCD(naer space))에서의 위치(*2+1 중점 이동) 의문: 왜 다들 0.5로 해두고하지?
+    var ws = ps.unproject(camera);
+    //NDC에서 3D space에서의 위치 가져옴
+    ws.sub(camera.position).normalize();//왜 빼냐?
+    var distance = -camera.position.z / ws.z; // -1 -cam~
     
-       let x = -0.01*(e.offsetX-rightButtonMousePosX); 
-       let y = -0.01*(e.offsetY-rightButtonMousePosY); 
+    pos.copy(camera.position).add(ws.multiplyScalar(distance));
 
-      let R1 = new THREE.Matrix4().makeRotationY(x);
-      let R2 = new THREE.Matrix4().makeRotationX(y);
-      
-      R1.multiply(R2);
-      camera.matrix.multiply(R1);
-        //카메라스페이스 추가해서 해결해보자
-        //카메라가 translation되어야하나?
-
-        // let a = new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),y));
-        // let b = new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),x));
-        // a.multiply(b);
-        // forcamera.matrix.multiply(a);
-
+    if(rightButtonClick){
+        let tran = new THREE.Matrix4().makeTranslation(pos.x*-0.01,pos.y*-0.01,0); 
+        camera.matrix.multiply(tran);
+        //camera.applyMatrix4(tran);
+    }
+    if(leftButtonClick){
+     
     }  
     rightButtonMousePosX = e.offsetX;
     rightButtonMousePosY = e.offsetY;
 
-} //오류원인 - 카메라 좌표계를 다른 좌표계로 감싸주었더니 해결
-
+} 
 
 function mouseWheel(e) {
     camera.matrixAutoUpdate = false;
@@ -172,7 +151,6 @@ function mouseWheel(e) {
     let cam_view = new THREE.Vector3(0, 0, -1); // in the camera space, -z is the viewing direction
     
     cam_view.transformDirection(camera.matrix); // vector3의 메소드 로컬공간을 월드공간으로
-    console.log(cam_view);
 
     let view_move = cam_view.clone();
 
@@ -186,11 +164,8 @@ function mouseWheel(e) {
     console.log(view_move);
     mat_viewingTrans.makeTranslation(view_move.x, view_move.y, view_move.z);
     console.log(mat_viewingTrans);
-
     let cam_mat_prev = camera.matrix.clone();
     // cam_mat_prev = mat_viewingTrans * cam_mat_prev 으로 하면 사라져서 copy써준다
     cam_mat_prev.premultiply(mat_viewingTrans);
-
     camera.matrix.copy(cam_mat_prev);
-    console.log(camera.matrix);
 }   

@@ -114,8 +114,6 @@ function mouseUpHandler(e) {
 }
 
 function mouseMoveHandler(e) {
-    camera.matrixAutoUpdate = false;
-    camera.matrixWorldNeedsUpdate = true;
     forcamera.matrixAutoUpdate = false;
     forcamera.matrixWorldNeedsUpdate = true;
 
@@ -124,15 +122,8 @@ function mouseMoveHandler(e) {
     let prevWorldSpaceMousePos = screenSpaceMousePos.unproject(camera).clone();   
 
     if(rightButtonClick){
-        //let tran = new THREE.Matrix4().makeTranslation((e.offsetX-rightButtonMousePosX)*-0.01,(e.offsetY-rightButtonMousePosY)*0.01,0); 
-        //forcamera.matrix.multiply(tran);
-        
-        let cameraMoveInWorld = worldSpaceMousePos.sub(prevWorldSpaceMousePos);
-        cameraMoveInWorld.multiplyScalar(scale);
-        let pann = new THREE.Matrix4();
-        pann.makeTranslation(-(cameraMoveInWorld.x),-(cameraMoveInWorld.y),-(cameraMoveInWorld.z));
-        let c = forcamera.matrix.clone();
-        forcamera.matrix.copy( c.premultiply(pann));
+        let tran = new THREE.Matrix4().makeTranslation((e.offsetX-rightButtonMousePosX)*-0.01,(e.offsetY-rightButtonMousePosY)*0.01,0); 
+        forcamera.matrix.multiply(tran);
         }
     if(leftButtonClick){
 
