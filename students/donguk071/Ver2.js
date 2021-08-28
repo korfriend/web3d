@@ -31,7 +31,7 @@ let mode_movement = "none";
 
 ////추가좌표////
 const forcamera = new THREE.Object3D();
-forcamera.add(camera);
+////forcamera.add(camera);
 
 dom_init();
 scene_init();
@@ -62,7 +62,7 @@ function dom_init() {
 }
 
 function scene_init() {
-    scene.add(forcamera);
+    ////scene.add(forcamera);
     scene.add(cube);
     //좌표계하나에 두개의 좌표계를 추가하여 상대적인 움직임을 보여줘보자
     scene.add(cube);
@@ -117,8 +117,8 @@ function mouseUpHandler(e) {
 function mouseMoveHandler(e) {
     camera.matrixAutoUpdate = false;
     camera.matrixWorldNeedsUpdate = true;   
-    forcamera.matrixAutoUpdate = false;
-    forcamera.matrixWorldNeedsUpdate = true;   
+    //// forcamera.matrixAutoUpdate = false;
+    //// forcamera.matrixWorldNeedsUpdate = true;   
 
     var ps = new THREE.Vector3();
     var pos = new THREE.Vector3();
@@ -132,9 +132,9 @@ function mouseMoveHandler(e) {
     pos.copy(camera.position).add(ws.multiplyScalar(distance));
 
     if(rightButtonClick){
-        let tran = new THREE.Matrix4().makeTranslation(pos.x*-0.01,pos.y*-0.01,0); 
-        camera.matrix.multiply(tran);
-        //camera.applyMatrix4(tran);
+        let tran = new THREE.Matrix4().makeTranslation(pos.x*-0.1,pos.y*-0.1,0); 
+        //camera.matrix.multiply(tran); 이게 왜 안될까 진짜 의문이다
+        camera.applyMatrix4(tran);
     }
     if(leftButtonClick){
      

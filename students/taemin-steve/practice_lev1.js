@@ -161,7 +161,7 @@ function mouseMoveHandler(e) {
 
         let cameraMoveInWorld = worldSpaceMousePoint.sub(prevWorldSpaceMousePoint);
         cameraMoveInWorld.multiplyScalar(scale);
-        
+
         let m = new THREE.Matrix4();
 
         m.makeTranslation(- (cameraMoveInWorld.x),-(cameraMoveInWorld.y),-(cameraMoveInWorld.z),);
