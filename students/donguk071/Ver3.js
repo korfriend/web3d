@@ -33,6 +33,9 @@ let mode_movement = "none";
 const forcamera = new THREE.Object3D();
 forcamera.add(camera);
 
+const forcube = new THREE.Object3D();
+forcube.add(cube);
+
 dom_init();
 scene_init();
 
@@ -62,9 +65,8 @@ function dom_init() {
 
 function scene_init() {
     scene.add(forcamera);
-    scene.add(cube);
+    scene.add(forcube);
     //좌표계하나에 두개의 좌표계를 추가하여 상대적인 움직임을 보여줘보자
-    scene.add(cube);
     scene.add(new THREE.AxesHelper(2));// 축 생성
     scene.add(light);
 
@@ -129,15 +131,16 @@ function mouseMoveHandler(e) {
 
     if(rightButtonClick){
 /////////////////////////
-
-        //let SSpoint = temPS.distanceTo(camera.getWorldPosition(new THREE.Vector3(0,0,0)));
-        //console.log(SSpoint);
-        console.log(temWS);
-        let WSpoint = temWS.distanceTo(camera.getWorldPosition(new THREE.Vector3(0,0,0)));
-        console.log(WSpoint);
+        let cubeD = forcube.localToWorld(new THREE.Vector3(0,0,0));
+        let cameraD = camera.localToWorld(new THREE.Vector3(0,0,0));
+        
+        let D1 = cameraD.distanceTo(cubeD);
+        let D2 = cameraD.distanceTo(PS); //nearplane 까지 거리
+        let D = D1/D2; 
+        console.log(D1,D2,D);//기본은 5
 //////////////////////////
         let cameraMove = temWS.sub(preWS);
-        let tran = new THREE.Matrix4().makeTranslation(cameraMove.x*-30,cameraMove.y*-30,cameraMove.z*-30); 
+        let tran = new THREE.Matrix4().makeTranslation(cameraMove.x*-D,cameraMove.y*-D,cameraMove.z*-D); 
         //camera.matrix.multiply(tran);
 
         let updateCM = forcamera.matrix.clone();
@@ -194,4 +197,5 @@ function mouseWheel(e) {
     // cam_mat_prev = mat_viewingTrans * cam_mat_prev 으로 하면 사라져서 copy써준다
     cam_mat_prev.premultiply(mat_viewingTrans);
     camera.matrix.copy(cam_mat_prev);
+    console.log(camera.localToWorld(new THREE.Vector3(0,0,0)))
 }   
