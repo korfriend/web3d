@@ -169,7 +169,7 @@ function mouseMoveHandler(e) {
         let cam_mat_prev = cameraSpace.matrix.clone();
         cam_mat_prev.premultiply(m); //  premultiply(), multiply() 모두 screen graph 구조상 상관 없음. 
         cameraSpace.matrix.copy(cam_mat_prev); 
-
+        
     }
     else if(leftMouseButtonClick){
         
@@ -199,7 +199,6 @@ function mouseMoveHandler(e) {
     }
     prevScreenSpaceMousePoint = tempScreenSpaceMousePoint.clone();
 }
-
 
 function mouseWheel(e) {
     

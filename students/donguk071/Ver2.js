@@ -95,8 +95,8 @@ renderer.setAnimationLoop( ()=>{ // every available frame
 
 let rightButtonClick = false;
 let leftButtonClick = false;
-let rightButtonMousePosX = 0;
-let rightButtonMousePosY = 0;
+// let rightButtonMousePosX = 0;
+// let rightButtonMousePosY = 0;
 
 
 function mouseDownHandler(e) {
@@ -114,34 +114,31 @@ function mouseUpHandler(e) {
     leftButtonClick = false;
 }
 
+var preSS = new THREE.Vector3();
+
 function mouseMoveHandler(e) {
     camera.matrixAutoUpdate = false;
     camera.matrixWorldNeedsUpdate = true;   
     //// forcamera.matrixAutoUpdate = false;
     //// forcamera.matrixWorldNeedsUpdate = true;   
-
-    var ps = new THREE.Vector3();
-    var pos = new THREE.Vector3();
-    ps.set((e.clientX/window.innerWidth)*2-1,-(e.clientY/window.innerHeight)*2+1,-1);
-    //NCD(naer space))에서의 위치(*2+1 중점 이동) 의문: 왜 다들 0.5로 해두고하지?
-    var ws = ps.unproject(camera);
-    //NDC에서 3D space에서의 위치 가져옴
-    ws.sub(camera.position).normalize();//왜 빼냐?
-    var distance = -camera.position.z / ws.z; // -1 -cam~
-    
-    pos.copy(camera.position).add(ws.multiplyScalar(distance));
+    var SS = new THREE.Vector3();
+    SS.set((e.clientX/window.innerWidth)*2-1,-(e.clientY/window.innerHeight)*2+1,-1);
+    var temWS = SS.unproject(camera).clone();
+    var preWS = preSS.unproject(camera).clone();
+    //1. ss에서 바뀌기 전후 위치를 받아와  ws 로 변환한다 이후 전 ss에 후 ws를 넣어준다
 
     if(rightButtonClick){
-        let tran = new THREE.Matrix4().makeTranslation(pos.x*-0.1,pos.y*-0.1,0); 
-        //camera.matrix.multiply(tran); 이게 왜 안될까 진짜 의문이다
-        camera.applyMatrix4(tran);
+        var cameraMove = temWS.sub(preWS);
+        let tran = new THREE.Matrix4().makeTranslation(cameraMove.x*-1,cameraMove.y*-1,0); 
+        camera.matrix.multiply(tran);
     }
     if(leftButtonClick){
      
     }  
-    rightButtonMousePosX = e.offsetX;
-    rightButtonMousePosY = e.offsetY;
+    // rightButtonMousePosX = e.offsetX;
+    // rightButtonMousePosY = e.offsetY;
 
+    preSS = SS.clone();
 } 
 
 function mouseWheel(e) {
