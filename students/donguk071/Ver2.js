@@ -74,7 +74,7 @@ function scene_init() {
     scene.add(light);
     scene.add( new THREE.AmbientLight( 0x222222 ) );
 
-    light_helper = new THREE.DirectionalLightHelper(light, 0.3);                    // light(the light to be visualized), size(dimensions of the plan)
+    light_helper = new THREE.DirectionalLightHelper(light, 0.3);          
     scene.add( light_helper );
 
     camera.matrixAutoUpdate = false;
@@ -95,8 +95,6 @@ renderer.setAnimationLoop( ()=>{ // every available frame
 
 let rightButtonClick = false;
 let leftButtonClick = false;
-// let rightButtonMousePosX = 0;
-// let rightButtonMousePosY = 0;
 
 
 function mouseDownHandler(e) {
@@ -107,6 +105,7 @@ function mouseDownHandler(e) {
     else if (e.button === 2) { 
         rightButtonClick = true;
     }
+
 }
 
 function mouseUpHandler(e) {
@@ -114,31 +113,43 @@ function mouseUpHandler(e) {
     leftButtonClick = false;
 }
 
-var preSS = new THREE.Vector3();
+let prePS = new THREE.Vector3();
 
 function mouseMoveHandler(e) {
     camera.matrixAutoUpdate = false;
     camera.matrixWorldNeedsUpdate = true;   
     //// forcamera.matrixAutoUpdate = false;
     //// forcamera.matrixWorldNeedsUpdate = true;   
-    var SS = new THREE.Vector3();
-    SS.set((e.clientX/window.innerWidth)*2-1,-(e.clientY/window.innerHeight)*2+1,-1);
-    var temWS = SS.unproject(camera).clone();
-    var preWS = preSS.unproject(camera).clone();
+    let SS = new THREE.Vector3();
+    let PS = SS.set((e.clientX/window.innerWidth)*2-1,-(e.clientY/window.innerHeight)*2+1,-1);//SS to PS
+    let temPS = PS.clone();  //???????????????
+    let temWS = PS.unproject(camera).clone();
+    let preWS = prePS.unproject(camera).clone();
     //1. ss에서 바뀌기 전후 위치를 받아와  ws 로 변환한다 이후 전 ss에 후 ws를 넣어준다
 
     if(rightButtonClick){
-        var cameraMove = temWS.sub(preWS);
-        let tran = new THREE.Matrix4().makeTranslation(cameraMove.x*-1,cameraMove.y*-1,0); 
+        let cameraMove = temWS.sub(preWS);
+        let tran = new THREE.Matrix4().makeTranslation(cameraMove.x*-30,cameraMove.y*-30,cameraMove.z*-30); 
         camera.matrix.multiply(tran);
     }
     if(leftButtonClick){
-     
-    }  
-    // rightButtonMousePosX = e.offsetX;
-    // rightButtonMousePosY = e.offsetY;
+        let V1 = temWS.sub(camera.getWorldPosition(new THREE.Vector3(0,0,0)));
+        let V2 = preWS.sub(camera.getWorldPosition(new THREE.Vector3(0,0,0)));
+        console.log(camera.getWorldPosition(new THREE.Vector3(0,0,0)));
 
-    preSS = SS.clone();
+        let V = V1.cross(V2);
+        let VV = V.normalize(); 
+        //console.log(V.length());
+        
+        let R1 = new THREE.Matrix4().makeRotationY(VV.x);
+        let R2 = new THREE.Matrix4().makeRotationX(VV.y);
+        R1.multiply(R2);
+        let CM = camera.matrix.clone();
+        CM.premultiply(R1);
+        camera.matrix.copy(CM);
+        console.log(camera.getWorldPosition(new THREE.Vector3(0,0,0)));
+    }  
+    prePS = temPS.clone();
 } 
 
 function mouseWheel(e) {
