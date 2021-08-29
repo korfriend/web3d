@@ -31,7 +31,7 @@ let mode_movement = "none";
 
 ////추가좌표////
 const forcamera = new THREE.Object3D();
-////forcamera.add(camera);
+forcamera.add(camera);
 
 dom_init();
 scene_init();
@@ -62,7 +62,7 @@ function dom_init() {
 }
 
 function scene_init() {
-    ////scene.add(forcamera);
+    scene.add(forcamera);
     scene.add(cube);
     //좌표계하나에 두개의 좌표계를 추가하여 상대적인 움직임을 보여줘보자
     scene.add(cube);
@@ -74,7 +74,7 @@ function scene_init() {
     scene.add(light);
     scene.add( new THREE.AmbientLight( 0x222222 ) );
 
-    light_helper = new THREE.DirectionalLightHelper(light, 0.3);                    // light(the light to be visualized), size(dimensions of the plan)
+    light_helper = new THREE.DirectionalLightHelper(light, 0.3);          
     scene.add( light_helper );
 
     camera.matrixAutoUpdate = false;
@@ -95,8 +95,6 @@ renderer.setAnimationLoop( ()=>{ // every available frame
 
 let rightButtonClick = false;
 let leftButtonClick = false;
-// let rightButtonMousePosX = 0;
-// let rightButtonMousePosY = 0;
 
 
 function mouseDownHandler(e) {
@@ -107,6 +105,7 @@ function mouseDownHandler(e) {
     else if (e.button === 2) { 
         rightButtonClick = true;
     }
+
 }
 
 function mouseUpHandler(e) {
@@ -114,31 +113,53 @@ function mouseUpHandler(e) {
     leftButtonClick = false;
 }
 
-var preSS = new THREE.Vector3();
+let prePS = new THREE.Vector3();
 
 function mouseMoveHandler(e) {
     camera.matrixAutoUpdate = false;
     camera.matrixWorldNeedsUpdate = true;   
-    //// forcamera.matrixAutoUpdate = false;
-    //// forcamera.matrixWorldNeedsUpdate = true;   
-    var SS = new THREE.Vector3();
-    SS.set((e.clientX/window.innerWidth)*2-1,-(e.clientY/window.innerHeight)*2+1,-1);
-    var temWS = SS.unproject(camera).clone();
-    var preWS = preSS.unproject(camera).clone();
+    forcamera.matrixAutoUpdate = false;
+    forcamera.matrixWorldNeedsUpdate = true;   
+
+    let SS = new THREE.Vector3();
+    let PS = SS.set((e.clientX/window.innerWidth)*2-1,-(e.clientY/window.innerHeight)*2+1,-1);//SS to PS
+    let temPS = PS.clone();  //???????????????
+    let temWS = PS.unproject(camera).clone();
+    let preWS = prePS.unproject(camera).clone();
     //1. ss에서 바뀌기 전후 위치를 받아와  ws 로 변환한다 이후 전 ss에 후 ws를 넣어준다
 
     if(rightButtonClick){
-        var cameraMove = temWS.sub(preWS);
-        let tran = new THREE.Matrix4().makeTranslation(cameraMove.x*-1,cameraMove.y*-1,0); 
-        camera.matrix.multiply(tran);
+        let cameraMove = temWS.sub(preWS);
+        let tran = new THREE.Matrix4().makeTranslation(cameraMove.x*-30,cameraMove.y*-30,cameraMove.z*-30); 
+        //camera.matrix.multiply(tran);
+
+        let updateCM = forcamera.matrix.clone();
+        updateCM.premultiply(tran); 
+        forcamera.matrix.copy(updateCM); 
     }
     if(leftButtonClick){
-     
-    }  
-    // rightButtonMousePosX = e.offsetX;
-    // rightButtonMousePosY = e.offsetY;
+        let V1 = temWS.sub(camera.getWorldPosition(new THREE.Vector3(0,0,0)));
+        let V2 = preWS.sub(camera.getWorldPosition(new THREE.Vector3(0,0,0)));
+        console.log(camera.getWorldPosition(new THREE.Vector3(0,0,0)));
+        
+        let d1 = V1.length();
+        let d2 = V2.length();
+        
+        let V = V1.cross(V2);
+        let VV = V.normalize();
 
-    preSS = SS.clone();
+        let dotV = V1.dot(V2);
+        let theta = (Math.PI/180)*Math.acos(dotV/(d1*d2)); //이래야지 도가되나?
+
+        // let R = new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().
+        // setFromAxisAngle(VV, -Math.abs(theta)));]
+        let R = new THREE.Matrix4().makeRotationAxis(VV,-theta);
+
+        let CM = camera.matrix.clone();
+        CM.premultiply(R);
+        camera.matrix.copy(CM);
+    }  
+    prePS = temPS.clone();
 } 
 
 function mouseWheel(e) {
