@@ -31,7 +31,7 @@ let mode_movement = "none";
 
 ////추가좌표////
 const forcamera = new THREE.Object3D();
-////forcamera.add(camera);
+forcamera.add(camera);
 
 dom_init();
 scene_init();
@@ -62,7 +62,7 @@ function dom_init() {
 }
 
 function scene_init() {
-    ////scene.add(forcamera);
+    scene.add(forcamera);
     scene.add(cube);
     //좌표계하나에 두개의 좌표계를 추가하여 상대적인 움직임을 보여줘보자
     scene.add(cube);
@@ -118,8 +118,9 @@ let prePS = new THREE.Vector3();
 function mouseMoveHandler(e) {
     camera.matrixAutoUpdate = false;
     camera.matrixWorldNeedsUpdate = true;   
-    //// forcamera.matrixAutoUpdate = false;
-    //// forcamera.matrixWorldNeedsUpdate = true;   
+    forcamera.matrixAutoUpdate = false;
+    forcamera.matrixWorldNeedsUpdate = true;   
+
     let SS = new THREE.Vector3();
     let PS = SS.set((e.clientX/window.innerWidth)*2-1,-(e.clientY/window.innerHeight)*2+1,-1);//SS to PS
     let temPS = PS.clone();  //???????????????
@@ -130,24 +131,33 @@ function mouseMoveHandler(e) {
     if(rightButtonClick){
         let cameraMove = temWS.sub(preWS);
         let tran = new THREE.Matrix4().makeTranslation(cameraMove.x*-30,cameraMove.y*-30,cameraMove.z*-30); 
-        camera.matrix.multiply(tran);
+        //camera.matrix.multiply(tran);
+
+        let updateCM = forcamera.matrix.clone();
+        updateCM.premultiply(tran); 
+        forcamera.matrix.copy(updateCM); 
     }
     if(leftButtonClick){
         let V1 = temWS.sub(camera.getWorldPosition(new THREE.Vector3(0,0,0)));
         let V2 = preWS.sub(camera.getWorldPosition(new THREE.Vector3(0,0,0)));
         console.log(camera.getWorldPosition(new THREE.Vector3(0,0,0)));
-
-        let V = V1.cross(V2);
-        let VV = V.normalize(); 
-        //console.log(V.length());
         
-        let R1 = new THREE.Matrix4().makeRotationY(VV.x);
-        let R2 = new THREE.Matrix4().makeRotationX(VV.y);
-        R1.multiply(R2);
+        let d1 = V1.length();
+        let d2 = V2.length();
+        
+        let V = V1.cross(V2);
+        let VV = V.normalize();
+
+        let dotV = V1.dot(V2);
+        let theta = (Math.PI/180)*Math.acos(dotV/(d1*d2)); //이래야지 도가되나?
+
+        // let R = new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().
+        // setFromAxisAngle(VV, -Math.abs(theta)));]
+        let R = new THREE.Matrix4().makeRotationAxis(VV,-theta);
+
         let CM = camera.matrix.clone();
-        CM.premultiply(R1);
+        CM.premultiply(R);
         camera.matrix.copy(CM);
-        console.log(camera.getWorldPosition(new THREE.Vector3(0,0,0)));
     }  
     prePS = temPS.clone();
 } 
