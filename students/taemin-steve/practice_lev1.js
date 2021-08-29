@@ -130,7 +130,7 @@ function mouseUpHandler(e) {
 }
 
 let prevScreenSpaceMousePoint = new THREE.Vector3(); // We need this reference even the mouseMoveHandler() is finished.
-
+let thetaSum = 0;
 function mouseMoveHandler(e) {
 
     camera.matrixAutoUpdate = false;
@@ -161,7 +161,6 @@ function mouseMoveHandler(e) {
 
         let cameraMoveInWorld = worldSpaceMousePoint.sub(prevWorldSpaceMousePoint);
         cameraMoveInWorld.multiplyScalar(scale);
-
         let m = new THREE.Matrix4();
 
         m.makeTranslation(- (cameraMoveInWorld.x),-(cameraMoveInWorld.y),-(cameraMoveInWorld.z),);
@@ -184,7 +183,7 @@ function mouseMoveHandler(e) {
         
         let dotProduct = mouseVector.dot(prevMouseVector);
         
-        let theta = (180/Math.PI) * Math.acos(dotProduct/(d1*d2));
+        let theta = Math.acos(dotProduct/(d1*d2));
 
         prevWorldSpaceMousePoint.cross(worldSpaceMousePoint);
 
