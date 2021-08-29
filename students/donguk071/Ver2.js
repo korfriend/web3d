@@ -2,6 +2,7 @@
 import * as THREE from "../../js/three.module.js";
 import { OrbitControls } from "../../js/OrbitControls.js";
 import { GUI } from '../../js/dat.gui.module.js';
+import { VertexColors } from "../taemin-steve/js/three.module.js";
 
 
 const render_w = window.innerWidth;                                                
@@ -30,7 +31,7 @@ let mode_movement = "none";
 
 ////추가좌표////
 const forcamera = new THREE.Object3D();
-forcamera.add(camera);
+////forcamera.add(camera);
 
 dom_init();
 scene_init();
@@ -61,7 +62,7 @@ function dom_init() {
 }
 
 function scene_init() {
-    scene.add(forcamera);
+    ////scene.add(forcamera);
     scene.add(cube);
     //좌표계하나에 두개의 좌표계를 추가하여 상대적인 움직임을 보여줘보자
     scene.add(cube);
@@ -94,8 +95,8 @@ renderer.setAnimationLoop( ()=>{ // every available frame
 
 let rightButtonClick = false;
 let leftButtonClick = false;
-let rightButtonMousePosX = 0;
-let rightButtonMousePosY = 0;
+// let rightButtonMousePosX = 0;
+// let rightButtonMousePosY = 0;
 
 
 function mouseDownHandler(e) {
@@ -113,46 +114,32 @@ function mouseUpHandler(e) {
     leftButtonClick = false;
 }
 
+var preSS = new THREE.Vector3();
+
 function mouseMoveHandler(e) {
     camera.matrixAutoUpdate = false;
-    camera.matrixWorldNeedsUpdate = true;
-    forcamera.matrixAutoUpdate = false;
-    forcamera.matrixWorldNeedsUpdate = true;
-
-    let screenSpaceMousePos =  new THREE.Vector3(e.clientX,e.clientY,0);
-    let worldSpaceMousePos = screenSpaceMousePos.unproject(camera).clone();
-    let prevWorldSpaceMousePos = screenSpaceMousePos.unproject(camera).clone();   
+    camera.matrixWorldNeedsUpdate = true;   
+    //// forcamera.matrixAutoUpdate = false;
+    //// forcamera.matrixWorldNeedsUpdate = true;   
+    var SS = new THREE.Vector3();
+    SS.set((e.clientX/window.innerWidth)*2-1,-(e.clientY/window.innerHeight)*2+1,-1);
+    var temWS = SS.unproject(camera).clone();
+    var preWS = preSS.unproject(camera).clone();
+    //1. ss에서 바뀌기 전후 위치를 받아와  ws 로 변환한다 이후 전 ss에 후 ws를 넣어준다
 
     if(rightButtonClick){
-        //let tran = new THREE.Matrix4().makeTranslation((e.offsetX-rightButtonMousePosX)*-0.01,(e.offsetY-rightButtonMousePosY)*0.01,0); 
-        //forcamera.matrix.multiply(tran);
-        
-        let cameraMoveInWorld = worldSpaceMousePos.sub(prevWorldSpaceMousePos);
-        cameraMoveInWorld.multiplyScalar(scale);
-        let pann = new THREE.Matrix4();
-        pann.makeTranslation(-(cameraMoveInWorld.x),-(cameraMoveInWorld.y),-(cameraMoveInWorld.z));
-        let c = forcamera.matrix.clone();
-        forcamera.matrix.copy( c.premultiply(pann));
-        }
+        var cameraMove = temWS.sub(preWS);
+        let tran = new THREE.Matrix4().makeTranslation(cameraMove.x*-1,cameraMove.y*-1,0); 
+        camera.matrix.multiply(tran);
+    }
     if(leftButtonClick){
-
-        forcamera.matrixAutoUpdate = false;
-        forcamera.matrixWorldNeedsUpdate = true;
-    
-       let x = -0.01*(e.offsetX-rightButtonMousePosX); 
-       let y = -0.01*(e.offsetY-rightButtonMousePosY); 
-
-      let R1 = new THREE.Matrix4().makeRotationY(x);
-      let R2 = new THREE.Matrix4().makeRotationX(y);
-      
-      R1.multiply(R2);
-      forcamera.matrix.multiply(R1);
+     
     }  
-    rightButtonMousePosX = e.offsetX;
-    rightButtonMousePosY = e.offsetY;
+    // rightButtonMousePosX = e.offsetX;
+    // rightButtonMousePosY = e.offsetY;
 
+    preSS = SS.clone();
 } 
-
 
 function mouseWheel(e) {
     camera.matrixAutoUpdate = false;

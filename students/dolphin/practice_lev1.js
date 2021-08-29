@@ -106,7 +106,12 @@ function scene_init() {
     //camera.updateMatrix();
     console.log(camera.matrix);
     console.log(camera.matrixWorld);
-    //controls.target.set( 0, 0, 0 ); 
+    //controls.target.set( 0, 0, 0 );
+
+    // if you want to know object's position in world coordinate system!!
+    //let pos = new THREE.Vector3();
+    //cube.getWorldPosition(pos);
+    //console.log(pos); 
 }
 
 function SetOrbitControls(enable_orbitctr){
@@ -141,9 +146,8 @@ let previousMousePosition = {
     x: 0,
     y: 0
 };
-let theta = 45, phi = 60, radious = 1600,mouseDownTheta = 0, mouseDownPhi = 0;
-//let projector = new THREE.projector();
-let ray = new THREE.Ray(camera.position, null);
+let theta;
+let rotationAxis = new THREE.Vector3();
 
 function mouseDownHandler(e) {
     // Gecko (Firefox), WebKit (Safari/Chrome) & Opera -> which, IE, Opera -> button
@@ -151,47 +155,52 @@ function mouseDownHandler(e) {
         isRotating = true;
     if (e.which==3 || e.button ==2)
         isPanning = true;
-    //console.log("isRotating : " + isRotating + ", isPanning : " + isPanning)
-    //console.clear();
-
-    previousMousePosition = {
-        x: e.offsetX,
-        y: e.offsetY
-    };
     
+    previousMousePosition = {
+        x : e.offsetX,
+        y : e.offsetY
+    };
 }
 
 function mouseMoveHandler(e) {
     camera.matrixAutoUpdate = false;
     camera.matrixWorldNeedsUpdate = true;
 
-    let deltaMove = {
+    let moveMousePosition = {
         x: e.offsetX-previousMousePosition.x,
         y: e.offsetY-previousMousePosition.y
     };
     
+    let cameraPosition = new THREE.Vector3();
+    camera.getWorldPosition(cameraPosition);
+    let origin = new THREE.Vector3(0,0,0);
+    let d = cameraPosition.distanceTo(origin);
+    console.log(d);
+
+    //let preScreenSpacePoint; 
+    //let preWorldSpacePoint = preScreenSpacePoint.clone().unproject(camera);
+
+
     if(isRotating) {
-        //theta = - ((e.offsetX - previousMousePosition.x) * 0.5) + mouseDownTheta;
-        //phi = ((e.offsetY - previousMousePosition.y) * 0.5) + mouseDownPhi;
-
-        //phi = Math.min( 180, Math.max(0, phi));
-
         // mousepoint convert to world coordinate system (x,y,z) : worldSpacePoint
         // screenSpacePoint : position of a 3D point in space along the ray in Normalized Device Coordinates
-        let screenSpacePoint = new THREE.Vector3(previousMousePosition.x / render_w * 2 - 1 , -previousMousePosition.y / render_h * 2 + 1, 0); // projectspace point?? 
-        let worldSpacePoint = screenSpacePoint.unproject(camera);
-
+        let screenSpacePoint = new THREE.Vector3(e.offsetX / render_w * 2 - 1 , -e.offsetY / render_h * 2 + 1, -1); // projectspace point??
+        let worldSpacePoint = screenSpacePoint.clone().unproject(camera);
+        
         // direction is the normalized ray direction from the camera
+        // pos is the position of the point in 3D space, "under the mouse"
         let direction = worldSpacePoint.sub(camera.position).normalize();
         let distance = - camera.position.z / direction.z;
-
         let pos = camera.position.clone().add(direction.multiplyScalar(distance));
         let position3D = {
             x : pos.x,
             y : pos.y,
-            z : 0
+            z : pos.z
         };
 
+        let v2 = worldSpacePoint.length();
+        //console.log(v2);
+        //let v1 = 
 
         //let myAxis = new THREE.Vector3(worldPoint.x, worldPoint.y, worldPoint.z);
         let mat_rotation_x = new THREE.Matrix4().makeRotationY(position3D.x * 0.01);
@@ -199,10 +208,9 @@ function mouseMoveHandler(e) {
         let mat_rotation_z = new THREE.Matrix4().makeRotationZ(position3D.z * -0.01);
         //mat_rotation.multiply(mat_rotation_x);
         //mat_rotation_x.multiply(mat_rotation_y);
-        mat_rotation_x.multiply(mat_rotation_y);//.multiply(mat_rotaiton_z);
-        //mat_rotation_x.multiply(mat_rotaiton_z)
+        //mat_rotation_x.multiply(mat_rotation_y);//.multiply(mat_rotaiton_z);
+        mat_rotation_x.multiply(mat_rotation_z)
 
-        
         camera.applyMatrix4(mat_rotation_x);
         
         //camera.position.x = radious * Math.sin(theta * Math.PI / 360) * Math.cos(phi * Math.PI / 360);
@@ -211,10 +219,12 @@ function mouseMoveHandler(e) {
         //console.log(camera.position);
         //let mouse3D = projector.unprojectVector(screenSpacePoint);
         //ray.direction = mouse3D.subSelf(camera.position).normalize();
+
+
     }
     
     else if(isPanning) {
-        let a = new THREE.Matrix4().makeTranslation(-10* (deltaMove.x/ render_w), 10* (deltaMove.y/ render_h), 0);
+        let a = new THREE.Matrix4().makeTranslation(-10* (moveMousePosition.x/ render_w), 10* (moveMousePosition.y/ render_h), 0);
         camera.matrix.multiply(a);
         console.log(camera.matrix);
     }
@@ -272,6 +282,4 @@ function createVector(x, y, z, camera, width, height) {
 
         return vector;
     }
-
-
 */
