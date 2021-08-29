@@ -211,7 +211,6 @@ function mouseMoveHandler(e) {
         //mat_rotation_x.multiply(mat_rotation_y);//.multiply(mat_rotaiton_z);
         mat_rotation_x.multiply(mat_rotation_z)
 
-        
         camera.applyMatrix4(mat_rotation_x);
         
         //camera.position.x = radious * Math.sin(theta * Math.PI / 360) * Math.cos(phi * Math.PI / 360);
