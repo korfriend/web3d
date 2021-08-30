@@ -35,26 +35,12 @@ let mode_movement = "none"; //what?
 let leftdown = false;
 let rightdown = false;
 
-var previousMousePosition = {
+let previousMousePosition = {
     x: 0,
     y: 0
 };
 
-const coords = new THREE.Vector3;
-const worldPosition = new THREE.Vector3()
-const plane = new THREE.Plane(new THREE.Vector3(0.0, 1.0, 0.0))
-const raycaster = new THREE.Raycaster()
 
-function screenToWorld({ x, y, canvasWidth, canvasHeight, camera }) {
-
-	coords.set(
-		(x / canvasWidth) * 2 - 1,
-		-(y / canvasHeight) * 2 + 1,
-		0.5
-	)
-	raycaster.setFromCamera(coords, camera)
-	return raycaster.ray.intersectPlane(plane, worldPosition)
-}
 
 dom_init();
 scene_init();
@@ -150,58 +136,45 @@ function mouseDownHandler(e) {
         leftdown = true;
     }
 }
+let prevPS = new THREE.Vector3(); // We need this reference even the mouseMoveHandler() is finished.
 
 function mouseMoveHandler(e) {
     camera.matrixAutoUpdate = false;
     camera.matrixWorldNeedsUpdate = true;
     let mat_viewingTrans = new THREE.Matrix4();
 
-    //console.log(getSceneToWorld(previousMousePosition.x,previousMousePosition.y));
+   //console.log(camera.localToWorld(new THREE.Vector3(0,0,0)));
+  
+   let PS = new THREE.Vector3( ( e.offsetX /render_w ) * 2 - 1,
+        -( e.offsetY / render_h ) * 2 + 1, -1);
 
- 
+    let tempPS = PS.clone();
+
+    let WS = PS.unproject(camera).clone();
+    let prevWS = prevPS.unproject(camera).clone();   
+
     if (leftdown == true) {
-         let pos = new THREE.Vector3();
-         pos.x = (e.offsetX - previousMousePosition.x)/render_w;
-         pos.y = (e.offsetY - previousMousePosition.y)/render_h;
-         pos.z = 0;
-
-        console.log(pos);
-        const pos2 = screenToWorld({
-            x: e.offsetX,
-            y: e.offsetY,
-            canvasWidth: window.innerWidth,
-            canvasHeight: window.innerHeight,
-            camera
-        })
-        console.log(pos2)
-        //pos.x = pos2.x;
-        //pos.y = pos2.y;
-        //pos.z = pos2.z;
-
-        const myAxis = new THREE.Vector3(-(e.offsetY - previousMousePosition.y),-(e.offsetX - previousMousePosition.x),0);
-        mat_viewingTrans.makeRotationAxis(myAxis.normalize(),  Math.PI*Math.sqrt(pos.x*pos.x+pos.y*pos.y));
+        let V1 = WS.sub(camera.getWorldPosition(new THREE.Vector3(0,0,0)));
+        let V2 = prevWS.sub(camera.getWorldPosition(new THREE.Vector3(0,0,0)));
+        let myAxis = new THREE.Vector3().crossVectors(WS,prevWS)
+        let theta = -Math.acos(WS.dot(prevWS)/(V1.length()*V2.length()));
+        mat_viewingTrans.makeRotationAxis(myAxis.normalize(),  theta);
     }
 
     else if (rightdown == true) {
-        mat_viewingTrans.makeTranslation(-(e.offsetX-previousMousePosition.x)/render_w*5, 
-        (e.offsetY-previousMousePosition.y)/render_h*5,0);
+        let cameraMoveInWorld = WS.sub(prevWS);
+        mat_viewingTrans.makeTranslation(-cameraMoveInWorld.x, 
+        -cameraMoveInWorld.y,-cameraMoveInWorld.z);
     }
 
     camera.matrix.premultiply(mat_viewingTrans);
-    
-    
-    previousMousePosition = {
-        x: e.offsetX,
-        y: e.offsetY
-    };
-    
+    prevPS = tempPS.clone();
 }
 
 function mouseUpHandler(e) {
     leftdown = false;
     rightdown = false;
 }
-
 
 function mouseWheel(e) {
     camera.matrixAutoUpdate = false;
@@ -229,5 +202,4 @@ function mouseWheel(e) {
     cam_mat_prev.premultiply(mat_viewingTrans);
     // camera.matrix = cam_mat_prev
     camera.matrix.copy(cam_mat_prev);
-    console.log("after->", camera.matrix);
 }
