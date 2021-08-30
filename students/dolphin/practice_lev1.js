@@ -166,18 +166,15 @@ function mouseMoveHandler(e) {
     
     //update origin vector..
     //calculate scale..
+    let preCamPosition = new THREE.Vector3(0,0,5);
     let camPosition = new THREE.Vector3();
     camera.getWorldPosition(camPosition);
-    console.log(camPosition);
 
     let cameraToCube = camPosition.distanceTo(cube.position);
-    console.log(cameraToCube);
-
-    //origin = camPosition;
-    let scale = -30
+    let scale = cameraToCube/0.1
     
     if(isRotating) {
-        console.log(origin);
+        origin = new THREE.Vector3(0,0,0);
         vec1 = worldSpacePoint.sub(origin);
         vec2 = preWorldSpacePoint.sub(origin);
 
@@ -205,6 +202,14 @@ function mouseMoveHandler(e) {
         let transltation_mat = new THREE.Matrix4().makeTranslation(vec3.x, vec3.y, vec3.z);
 
         camera.matrix.premultiply(transltation_mat);
+
+        
+        let deltaMove = new THREE.Vector3(preCamPosition.x - camPosition.x, preCamPosition.y - camPosition.y, preCamPosition.z - camPosition.z);
+        origin.x += deltaMove.x;
+        origin.y += deltaMove.y;
+        origin.z += deltaMove.z; 
+        console.log(deltaMove);
+        console.log(origin);
     }
 
     previousMousePosition = {
