@@ -149,7 +149,6 @@ function mouseMoveHandler(e) {
         -( e.offsetY / render_h ) * 2 + 1, -1);
 
     let tempPS = PS.clone();
-
     let WS = PS.unproject(camera).clone();
     let prevWS = prevPS.unproject(camera).clone();   
 
@@ -157,7 +156,6 @@ function mouseMoveHandler(e) {
     let V2 = prevWS.sub(camera.getWorldPosition(new THREE.Vector3(0,0,0)));
 
     if (leftdown == true) {
- 
         let myAxis = new THREE.Vector3().crossVectors(WS,prevWS)
         let theta = -Math.acos(WS.dot(prevWS)/(V1.length()*V2.length()));
         mat_viewingTrans.makeRotationAxis(myAxis.normalize(),  theta);
@@ -166,10 +164,11 @@ function mouseMoveHandler(e) {
     else if (rightdown == true) {
         let D_PS=camera.localToWorld(new THREE.Vector3(0,0,0)).distanceTo(PS);
         let D_WS=camera.localToWorld(new THREE.Vector3(0,0,0)).distanceTo(V1);
-        let scale=D_WS/D_PS;
+        let scale=-D_WS/D_PS;
+        console.log(scale);
         let cameraMoveInWorld = WS.sub(prevWS);
-        mat_viewingTrans.makeTranslation(-cameraMoveInWorld.x*scale, 
-        -cameraMoveInWorld.y*scale,-cameraMoveInWorld.z*scale);
+        mat_viewingTrans.makeTranslation(cameraMoveInWorld.x*scale, 
+        cameraMoveInWorld.y*scale,cameraMoveInWorld.z*scale);
     }
 
     camera.matrix.premultiply(mat_viewingTrans);
