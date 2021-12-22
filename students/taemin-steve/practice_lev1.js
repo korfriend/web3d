@@ -183,7 +183,7 @@ function mouseMoveHandler(e) {
         
         let dotProduct = mouseVector.dot(prevMouseVector);
         
-        let theta = Math.acos(dotProduct/(d1*d2));
+        let theta = Math.acos(dotProduct/(d1*d2))*100;
 
         prevWorldSpaceMousePoint.cross(worldSpaceMousePoint);
 
